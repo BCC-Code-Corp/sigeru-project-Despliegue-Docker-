@@ -1,0 +1,28 @@
+services:
+  gateway:
+    ports:
+      - "127.0.0.1:${DEV_GATEWAY_PORT:-8101}:80"
+
+  landing:
+    ports:
+      - "127.0.0.1:${DEV_LANDING_DIRECT_PORT:-8111}:80"
+
+  frontend:
+    ports:
+      - "127.0.0.1:${DEV_FRONTEND_PORT:-8112}:80"
+
+  backoffice:
+    ports:
+      - "127.0.0.1:${DEV_BACKOFFICE_PORT:-8113}:80"
+
+  api-usuarios:
+    ports:
+      - "127.0.0.1:${DEV_API_USUARIOS_PORT:-8114}:80"
+
+  api-gestion:
+    ports:
+      - "127.0.0.1:${DEV_API_GESTION_PORT:-8115}:80"
+
+  api-recoleccion:
+    ports:
+      - "127.0.0.1:${DEV_API_RECOLECCION_PORT:-8116}:80"

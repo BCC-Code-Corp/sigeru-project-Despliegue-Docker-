@@ -1,0 +1,6 @@
+**/.env
+**/.env.*
+!**/.env.example
+sigeru-infra/certs/*
+!sigeru-infra/certs/README.md
+!sigeru-infra/certs/.gitkeep
