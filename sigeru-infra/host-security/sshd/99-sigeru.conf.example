@@ -1,0 +1,4 @@
+# Ejemplo. Validá primero que tu clave pública funcione en una segunda sesión.
+PubkeyAuthentication yes
+PasswordAuthentication no
+PermitRootLogin prohibit-password

@@ -51,3 +51,11 @@ La base `sigeru_db` se inicializa desde `db/001-sigeru.sql` al crear el volumen 
 ## Ubuntu Server
 
 Instalar Docker Engine y Docker Compose, clonar este único repositorio en Ubuntu Server, crear `sigeru-infra/.env` y ejecutar los comandos de despliegue desde `sigeru-infra/`. Autorizar el puerto HTTP configurado en el firewall. La configuración HTTPS se agrega cuando se disponga de un dominio y certificado válido; nunca subir claves al repositorio.
+
+## Despliegue separado y seguridad
+
+Para el esquema de tres hosts, usar `compose.app-server.yaml` en el host de aplicaciones y `compose.database-server.yaml` en el host DB. La guía completa está en `docs/Guia_Seguridad_y_Despliegue_SiGeRU.docx` y su versión Markdown en `docs/SEGURIDAD-Y-DESPLIEGUE.md`. El tercer host recibe copias cifradas según `host-security/BACKUPS.md`.
+
+El Compose de aplicaciones presupone certificado en `certs/fullchain.pem` y `certs/privkey.pem`, dominio configurado en Nginx, CIDR de administración limitado a la VPN y conectividad privada a MariaDB. Estos recursos no vienen en el repositorio.
+
+Las plantillas de firewall deben revisarse en el servidor real. Docker documenta que los puertos publicados pueden no quedar filtrados por UFW; aplicar y probar reglas compatibles con Docker y firewall perimetral antes de producción. No exponer 3306 a Internet.
