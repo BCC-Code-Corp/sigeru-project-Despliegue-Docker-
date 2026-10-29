@@ -58,4 +58,6 @@ Para el esquema de tres hosts, usar `compose.app-server.yaml` en el host de apli
 
 El Compose de aplicaciones presupone certificado en `certs/fullchain.pem` y `certs/privkey.pem`, dominio configurado en Nginx, CIDR de administración limitado a la VPN y conectividad privada a MariaDB. Estos recursos no vienen en el repositorio.
 
+Las tres APIs montan el volumen compartido `sigeru_php_sessions` en `/var/lib/php/sessions`. Esto permite que una sesión creada por el login en la API de usuarios sea reconocida por las APIs de gestión y recolección. En el host de aplicaciones las tres APIs deben permanecer en la misma máquina/volumen compartido.
+
 Las plantillas de firewall deben revisarse en el servidor real. Docker documenta que los puertos publicados pueden no quedar filtrados por UFW; aplicar y probar reglas compatibles con Docker y firewall perimetral antes de producción. No exponer 3306 a Internet.

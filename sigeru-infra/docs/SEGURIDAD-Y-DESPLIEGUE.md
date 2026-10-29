@@ -16,6 +16,7 @@ Compose crea redes locales a cada host; no forma por sí mismo una red privada e
 - `compose.tls.yaml` agrega HTTPS y redirección desde HTTP. El certificado y la clave se montan de solo lectura desde `certs/`.
 - `gateway/routes.conf` comparte rutas; `/backoffice/` solo permite subredes privadas como base. Antes de producción, reemplazar por CIDR exacto de la VPN administrativa.
 - Se quitó al backoffice de la red Docker de base de datos en el despliegue local.
+- Las tres APIs comparten un volumen PHP de sesiones; así login, gestión y recolección reconocen el mismo ID de sesión al estar en el mismo host de aplicaciones.
 - `host-security/` contiene plantillas para reglas host, tráfico Docker, SSH, Fail2ban y Suricata IDS.
 
 Esto es configuración en código. No acredita que el firewall del proveedor, VPN, IDS/IPS, Fail2ban, TLS o backups estén activos en servidores reales.

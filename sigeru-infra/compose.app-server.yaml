@@ -9,8 +9,8 @@ services:
       - "${HTTPS_PORT:-443}:443"
     volumes:
       - ./gateway/nginx.tls.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./gateway/routes.conf:/etc/nginx/conf.d/routes.conf:ro
-      - ./gateway/admin-allowlist.conf:/etc/nginx/conf.d/admin-allowlist.conf:ro
+      - ./gateway/routes.conf:/etc/nginx/conf.d/routes.inc:ro
+      - ./gateway/admin-allowlist.conf:/etc/nginx/conf.d/admin-allowlist.inc:ro
       - ./gateway/proxy_params:/etc/nginx/conf.d/proxy_params:ro
       - ./certs:/etc/nginx/certs:ro
     networks: [proxy]
@@ -29,6 +29,7 @@ services:
   api-usuarios:
     build: {context: ../sigeru-api-usuarios, dockerfile: Dockerfile}
     restart: unless-stopped
+    volumes: [sigeru_php_sessions:/var/lib/php/sessions]
     environment: &api-env
       SIGERU_DB_HOST: ${MARIADB_HOST:?Definí IP privada del servidor DB}
       SIGERU_DB_PORT: 3306
@@ -39,12 +40,16 @@ services:
   api-gestion:
     build: {context: ../sigeru-api-gestion, dockerfile: Dockerfile}
     restart: unless-stopped
+    volumes: [sigeru_php_sessions:/var/lib/php/sessions]
     environment: *api-env
     networks: [proxy]
   api-recoleccion:
     build: {context: ../sigeru-api-recoleccion, dockerfile: Dockerfile}
     restart: unless-stopped
+    volumes: [sigeru_php_sessions:/var/lib/php/sessions]
     environment: *api-env
     networks: [proxy]
 networks:
   proxy: {driver: bridge}
+volumes:
+  sigeru_php_sessions:
