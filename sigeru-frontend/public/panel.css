@@ -306,3 +306,65 @@ body.cuerpo-panel {
     transition: none;
   }
 }
+
+/* ===== Estado de la cuadrilla: control segmentado estilo iOS ===== */
+.ios-segmentado {
+  --i: 0;
+  --pulgar: var(--color3);
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  max-width: 460px;
+  padding: 4px;
+  border-radius: 14px;
+  background: #e8ece2;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+.ios-segmentado[data-estado="inactivo"] { --pulgar: #7b8794; }
+.ios-segmentado[data-estado="trabajando"] { --pulgar: var(--color3); }
+.ios-segmentado[data-estado="yendo_a_descarga"] { --pulgar: #d98e04; }
+.ios-pulgar {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / 3);
+  border-radius: 11px;
+  background: var(--pulgar);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.22);
+  transform: translateX(calc(var(--i) * 100%));
+  transition: transform 0.35s cubic-bezier(0.34, 1.35, 0.64, 1), background-color 0.25s;
+}
+.ios-segmentado button {
+  position: relative;
+  z-index: 1;
+  padding: 10px 6px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: #4b5563;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.25s, transform 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.ios-segmentado button:active { transform: scale(0.94); }
+.ios-segmentado button[aria-checked="true"] { color: #fff; }
+.ios-segmentado button:focus-visible { outline: 2px solid var(--color4); outline-offset: 2px; }
+.ios-estado-nota { min-height: 1.3em; margin: 8px 0 0; font-size: 0.85rem; color: #64748b; }
+
+.estado-cuadrillas-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); gap: 10px; }
+.estado-cuadrilla-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; border: 1px solid #e3e8da; border-radius: 12px; background: #fff; }
+.estado-cuadrilla-tag { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; color: #fff; white-space: nowrap; }
+.estado-cuadrilla-tag.estado-trabajando { background: var(--color3); }
+.estado-cuadrilla-tag.estado-inactivo { background: #7b8794; }
+.estado-cuadrilla-tag.estado-yendo_a_descarga { background: #d98e04; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ios-pulgar, .ios-segmentado button { transition: none; }
+}
+@media (max-width: 420px) {
+  .ios-segmentado button { font-size: 0.78rem; padding: 10px 2px; }
+}

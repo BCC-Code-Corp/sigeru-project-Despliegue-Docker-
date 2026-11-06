@@ -57,6 +57,13 @@ class CentroAcopio
         $q->execute([$datos['capacidad'], $datos['tipo_centro'], $id]);
     }
 
+    public function guardarCoordenadas(int $id, ?float $latitud, ?float $longitud): void
+    {
+        if ($latitud === null || $longitud === null) return;
+        $q = $this->pdo->prepare('UPDATE centros_acopio SET latitud=?,longitud=? WHERE id=?');
+        $q->execute([$latitud, $longitud, $id]);
+    }
+
     public function ultimoId(): int
     {
         return (int)$this->pdo->lastInsertId();

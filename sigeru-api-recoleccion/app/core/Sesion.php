@@ -78,8 +78,10 @@ final class Sesion
                 if ($metodo !== 'GET') self::exigir($recurso === 'contenedores' && $metodo === 'PUT' ? ['administrador', 'chofer', 'recolector'] : ['administrador']);
             } elseif ($recurso === 'incidencias') {
                 if ($metodo === 'POST') self::exigir(['administrador', 'vecino', 'chofer', 'recolector']);
+                if ($metodo === 'PUT' && ($_GET['accion'] ?? '') === 'reportar') self::exigir(['chofer', 'recolector']);
                 if ($metodo === 'PUT') self::exigir(($_GET['accion'] ?? '') === 'asignar' ? ['administrador'] : ['administrador', 'chofer', 'recolector']);
-            } elseif ($recurso === 'notificaciones' && $metodo === 'POST') self::exigir(['administrador']);
+            } elseif ($recurso === 'penalizados') self::exigir(['administrador']);
+            elseif ($recurso === 'notificaciones' && $metodo === 'POST') self::exigir(['administrador']);
         }
         if ($metodo === 'DELETE' && in_array($recurso, ['camiones', 'contenedores', 'centros_acopio'], true)) {
             $motivo = trim($_GET['motivo'] ?? '');

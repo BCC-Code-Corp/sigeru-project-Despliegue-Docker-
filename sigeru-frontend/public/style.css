@@ -1443,3 +1443,222 @@ html {
     margin-bottom: 6px;
   }
 }
+
+/* ===== Cabecera pública adaptable (tablet y móvil) ===== */
+@media (max-width: 900px) {
+  .encabezado {
+    flex-wrap: wrap;
+    padding: 12px 20px;
+    gap: 8px 12px;
+  }
+  .navegacion {
+    order: 4;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+  }
+}
+@media (max-width: 520px) {
+  .encabezado {
+    padding: 10px 14px;
+  }
+  .logo-empresa {
+    width: 52px;
+  }
+  .acciones {
+    gap: 8px;
+  }
+  .acciones button {
+    padding: 8px 14px;
+    font-size: 14px;
+  }
+  .navegacion .etiqueta-a {
+    font-size: 0.9rem;
+  }
+}
+@media (max-width: 520px) {
+  .problema {
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+  }
+  .problema-texto {
+    min-width: 0;
+  }
+}
+@media (max-width: 900px) {
+  .presentacion {
+    gap: 24px;
+  }
+  .presentacion-texto,
+  .img-presentacion {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
+/* ===== Hero con video en movimiento (landing) ===== */
+#hero.presentacion {
+  overflow: hidden;
+  isolation: isolate;
+  min-height: 540px;
+  margin-top: 24px;
+  padding: 96px 56px;
+  border-radius: 28px;
+  background: #1f3a2a url("../assets/landing-hero-poster.jpg") center / cover no-repeat;
+  box-shadow: 0 18px 44px rgba(20, 45, 30, 0.28);
+}
+.hero-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -2;
+}
+#hero.presentacion::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    90deg,
+    rgba(18, 42, 28, 0.9) 0%,
+    rgba(18, 42, 28, 0.66) 50%,
+    rgba(18, 42, 28, 0.22) 100%
+  );
+}
+#hero .hero-blob {
+  display: none;
+}
+#hero .presentacion-texto {
+  flex: none;
+  max-width: 620px;
+}
+#hero .presentacion-texto h1 {
+  color: #fff;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.35);
+}
+#hero .presentacion-texto p {
+  color: rgba(255, 255, 255, 0.92);
+}
+#hero .hero-badge {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(6px);
+}
+#hero .boton-hero-secundario {
+  background: transparent;
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.75);
+}
+#hero .boton-hero-secundario:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+@media (max-width: 700px) {
+  #hero.presentacion {
+    min-height: 0;
+    padding: 60px 22px;
+    border-radius: 20px;
+  }
+  #hero.presentacion::before {
+    background: linear-gradient(180deg, rgba(18, 42, 28, 0.82), rgba(18, 42, 28, 0.7));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-video {
+    display: none;
+  }
+}
+
+/* ===== Logo SiGeRU en la landing ===== */
+.logo-empresa.logo-sigeru {
+  width: 160px;
+}
+@media (max-width: 520px) {
+  .logo-empresa.logo-sigeru {
+    width: 120px;
+  }
+}
+
+/* ===== Usuarios de prueba desplegable (login) ===== */
+details.usuarios-prueba {
+  display: block;
+  padding: 0;
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  color: #374151;
+}
+details.usuarios-prueba summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color4);
+  user-select: none;
+}
+details.usuarios-prueba summary::-webkit-details-marker {
+  display: none;
+}
+details.usuarios-prueba summary::after {
+  content: "▾";
+  font-size: 1.1rem;
+  transition: transform 0.25s ease;
+}
+details.usuarios-prueba[open] summary::after {
+  transform: rotate(180deg);
+}
+details.usuarios-prueba summary:focus-visible {
+  outline: 2px solid var(--color3);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+.usuarios-prueba-lista {
+  display: grid;
+  gap: 10px;
+  padding: 0 14px 14px;
+  animation: apareceSuave 0.3s ease both;
+}
+.usuario-prueba {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid #e3e8da;
+  border-radius: 10px;
+  font-size: 0.95rem;
+}
+.usuario-prueba b {
+  color: var(--color4);
+  font-size: 1rem;
+}
+.usuario-prueba code {
+  font: 600 0.95rem/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: #1f2937;
+  word-break: break-all;
+}
+
+/* ===== Logo SiGeRU: panel, pie de página y formularios ===== */
+.logo-sigeru-panel {
+  height: 36px;
+  width: auto;
+}
+.logo-sigeru-pie {
+  height: 40px;
+  width: auto;
+  padding: 6px 12px;
+  background: #fff;
+  border-radius: 12px;
+}
+.logo-sigeru-form {
+  display: block;
+  width: 210px;
+  max-width: 70%;
+  height: auto;
+  margin: 0 auto 14px;
+}

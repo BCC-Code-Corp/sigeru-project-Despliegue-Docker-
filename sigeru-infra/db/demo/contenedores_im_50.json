@@ -1,0 +1,510 @@
+{
+  "fuente": "https://datos-abiertos.montevideo.gub.uy/Contenedores_domiciliarios.zip",
+  "catalogo": "https://ckan.montevideo.gub.uy/dataset/contenedores-de-residuos-domiciliarios-ubicacion-circuitos-y-frecuencia-de-recoleccion",
+  "fecha_descarga": "2026-10-08",
+  "crs_origen": "SIRGAS 2000 / UTM 21S (EPSG:31981)",
+  "crs_destino": "WGS84 (EPSG:4326)",
+  "nota": "Ubicaciones oficiales; estados simulados para pruebas. No representa el estado actual de los contenedores.",
+  "contenedores": [
+    {
+      "referencia_externa": "134095",
+      "ubicacion": "Prueba IM #134095 · circuito C_DU_RM_CL_103",
+      "latitud": -34.8853462,
+      "longitud": -56.1695427,
+      "estado": "funcional",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "C_DU_RM_CL_103",
+      "horario": "LUNES, MIERCOLES Y VIERNES CON FERIADOS LABORABLES: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "101350",
+      "ubicacion": "Prueba IM #101350 · circuito E_DU_RM_CL_101",
+      "latitud": -34.881594,
+      "longitud": -56.1466661,
+      "estado": "desbordado",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "E_DU_RM_CL_101",
+      "horario": "LUNES, MIERCOLES Y VIERNES CON FERIADOS LABORABLES: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "114339",
+      "ubicacion": "Prueba IM #114339 · circuito D_DU_RM_CL_105",
+      "latitud": -34.8703061,
+      "longitud": -56.1554992,
+      "estado": "roto",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "D_DU_RM_CL_105",
+      "horario": "DOMINGOS, MARTES Y JUEVES CON FERIADOS LABORABLES: Matutino (06 a 14 hrs.)"
+    },
+    {
+      "referencia_externa": "133918",
+      "ubicacion": "Prueba IM #133918 · circuito C_DU_RM_CL_101",
+      "latitud": -34.8853881,
+      "longitud": -56.1834894,
+      "estado": "funcional",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "C_DU_RM_CL_101",
+      "horario": "LUNES, MIERCOLES Y VIERNES CON FERIADOS LABORABLES: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "177000",
+      "ubicacion": "Prueba IM #177000 · circuito CH_DU_RM_CL_110",
+      "latitud": -34.9014887,
+      "longitud": -56.1607573,
+      "estado": "desbordado",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "CH_DU_RM_CL_110",
+      "horario": "DOMINGOS, MARTES Y JUEVES CON FERIADOS LABORABLES: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "101332",
+      "ubicacion": "Prueba IM #101332 · circuito E_DU_RM_CL_101",
+      "latitud": -34.8791883,
+      "longitud": -56.1467133,
+      "estado": "roto",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "E_DU_RM_CL_101",
+      "horario": "LUNES, MIERCOLES Y VIERNES CON FERIADOS LABORABLES: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "134302",
+      "ubicacion": "Prueba IM #134302 · circuito C_DU_RM_CL_105",
+      "latitud": -34.8732374,
+      "longitud": -56.1722971,
+      "estado": "funcional",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "C_DU_RM_CL_105",
+      "horario": "LUNES, MIERCOLES Y VIERNES CON FERIADOS LABORABLES: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "139110",
+      "ubicacion": "Prueba IM #139110 · circuito B_DU_RM_CL_101",
+      "latitud": -34.8949381,
+      "longitud": -56.1845799,
+      "estado": "desbordado",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "B_DU_RM_CL_101",
+      "horario": "DOMINGOS, MARTES Y JUEVES CON FERIADOS LABORABLES: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "175857",
+      "ubicacion": "Prueba IM #175857 · circuito CH_DU_RM_CL_108",
+      "latitud": -34.9028024,
+      "longitud": -56.1407482,
+      "estado": "roto",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "CH_DU_RM_CL_108",
+      "horario": "DOMINGOS A VIERNES Y TODOS LOS FERIADOS: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "101334",
+      "ubicacion": "Prueba IM #101334 · circuito E_DU_RM_CL_101",
+      "latitud": -34.8840013,
+      "longitud": -56.1388318,
+      "estado": "funcional",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "E_DU_RM_CL_101",
+      "horario": "LUNES, MIERCOLES Y VIERNES CON FERIADOS LABORABLES: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "114352",
+      "ubicacion": "Prueba IM #114352 · circuito D_DU_RM_CL_105",
+      "latitud": -34.8677237,
+      "longitud": -56.1564636,
+      "estado": "desbordado",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "D_DU_RM_CL_105",
+      "horario": "DOMINGOS, MARTES Y JUEVES CON FERIADOS LABORABLES: Matutino (06 a 14 hrs.)"
+    },
+    {
+      "referencia_externa": "133892",
+      "ubicacion": "Prueba IM #133892 · circuito C_DU_RM_CL_101",
+      "latitud": -34.8856294,
+      "longitud": -56.1851315,
+      "estado": "roto",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "C_DU_RM_CL_101",
+      "horario": "LUNES, MIERCOLES Y VIERNES CON FERIADOS LABORABLES: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "175453",
+      "ubicacion": "Prueba IM #175453 · circuito CH_DU_RM_CL_105",
+      "latitud": -34.9062103,
+      "longitud": -56.1573828,
+      "estado": "funcional",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "CH_DU_RM_CL_105",
+      "horario": "DOMINGOS A VIERNES Y TODOS LOS FERIADOS: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "105419",
+      "ubicacion": "Prueba IM #105419 · circuito E_DU_RM_CL_102",
+      "latitud": -34.8773991,
+      "longitud": -56.1396634,
+      "estado": "desbordado",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "E_DU_RM_CL_102",
+      "horario": "MARTES JUEVES Y SABADOS CON FERIADOS LABORABLES: Vespertino (14 a 22 hrs.)"
+    },
+    {
+      "referencia_externa": "107789",
+      "ubicacion": "Prueba IM #107789 · circuito E_DU_RM_CL_104",
+      "latitud": -34.8928995,
+      "longitud": -56.1294373,
+      "estado": "roto",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "E_DU_RM_CL_104",
+      "horario": "LUNES, MIERCOLES Y VIERNES CON FERIADOS LABORABLES: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "114335",
+      "ubicacion": "Prueba IM #114335 · circuito D_DU_RM_CL_105",
+      "latitud": -34.8676684,
+      "longitud": -56.1511665,
+      "estado": "funcional",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "D_DU_RM_CL_105",
+      "horario": "DOMINGOS, MARTES Y JUEVES CON FERIADOS LABORABLES: Matutino (06 a 14 hrs.)"
+    },
+    {
+      "referencia_externa": "124072",
+      "ubicacion": "Prueba IM #124072 · circuito D_DU_RM_CL_111",
+      "latitud": -34.8610206,
+      "longitud": -56.1709589,
+      "estado": "desbordado",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "D_DU_RM_CL_111",
+      "horario": "LUNES, MIERCOLES Y VIERNES CON FERIADOS LABORABLES: Matutino (06 a 14 hrs.)"
+    },
+    {
+      "referencia_externa": "134529",
+      "ubicacion": "Prueba IM #134529 · circuito C_DU_RM_CL_107",
+      "latitud": -34.8780231,
+      "longitud": -56.186188,
+      "estado": "roto",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "C_DU_RM_CL_107",
+      "horario": "LUNES, MIERCOLES Y VIERNES CON FERIADOS LABORABLES: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "139092",
+      "ubicacion": "Prueba IM #139092 · circuito B_DU_RM_CL_101",
+      "latitud": -34.895791,
+      "longitud": -56.1923583,
+      "estado": "funcional",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "B_DU_RM_CL_101",
+      "horario": "DOMINGOS, MARTES Y JUEVES CON FERIADOS LABORABLES: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "175451",
+      "ubicacion": "Prueba IM #175451 · circuito CH_DU_RM_CL_102",
+      "latitud": -34.9112724,
+      "longitud": -56.1538162,
+      "estado": "desbordado",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "CH_DU_RM_CL_102",
+      "horario": "DOMINGOS A VIERNES Y TODOS LOS FERIADOS: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "177565",
+      "ubicacion": "Prueba IM #177565 · circuito B_DU_RM_CL_06",
+      "latitud": -34.9052747,
+      "longitud": -56.1745744,
+      "estado": "roto",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "B_DU_RM_CL_06",
+      "horario": "DOMINGOS A VIERNES Y TODOS LOS FERIADOS: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "114232",
+      "ubicacion": "Prueba IM #114232 · circuito D_DU_RM_CL_103",
+      "latitud": -34.8673265,
+      "longitud": -56.1369312,
+      "estado": "funcional",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "D_DU_RM_CL_103",
+      "horario": "DOMINGOS, MARTES Y JUEVES CON FERIADOS LABORABLES: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "138338",
+      "ubicacion": "Prueba IM #138338 · circuito C_DU_RM_CL_111",
+      "latitud": -34.8649486,
+      "longitud": -56.1856461,
+      "estado": "desbordado",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "C_DU_RM_CL_111",
+      "horario": "DOMINGOS, MARTES Y JUEVES CON FERIADOS LABORABLES: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "175769",
+      "ubicacion": "Prueba IM #175769 · circuito CH_DU_RM_CL_109",
+      "latitud": -34.9046057,
+      "longitud": -56.1329794,
+      "estado": "roto",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "CH_DU_RM_CL_109",
+      "horario": "DOMINGOS A VIERNES Y TODOS LOS FERIADOS: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "178138",
+      "ubicacion": "Prueba IM #178138 · circuito B_DU_RM_CL_01",
+      "latitud": -34.9042201,
+      "longitud": -56.1993982,
+      "estado": "funcional",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "B_DU_RM_CL_01",
+      "horario": "LUNES A SABADOS CON FERIADO LABORABLE: Vespertino (14 a 22 hrs.)"
+    },
+    {
+      "referencia_externa": "105212",
+      "ubicacion": "Prueba IM #105212 · circuito E_DU_RM_CL_136",
+      "latitud": -34.880763,
+      "longitud": -56.1187962,
+      "estado": "desbordado",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "E_DU_RM_CL_136",
+      "horario": "LUNES A SABADOS CON FERIADOS LABORABLES: Vespertino (14 a 22 hrs.)"
+    },
+    {
+      "referencia_externa": "115643",
+      "ubicacion": "Prueba IM #115643 · circuito D_DU_RM_CL_110",
+      "latitud": -34.8504393,
+      "longitud": -56.1558743,
+      "estado": "roto",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "D_DU_RM_CL_110",
+      "horario": "DOMINGOS, MARTES Y JUEVES CON FERIADOS LABORABLES: Matutino (06 a 14 hrs.)"
+    },
+    {
+      "referencia_externa": "175380",
+      "ubicacion": "Prueba IM #175380 · circuito CH_DU_RM_CL_101",
+      "latitud": -34.9271499,
+      "longitud": -56.1593106,
+      "estado": "funcional",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "CH_DU_RM_CL_101",
+      "horario": "DOMINGOS A VIERNES Y TODOS LOS FERIADOS: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "105230",
+      "ubicacion": "Prueba IM #105230 · circuito E_DU_RM_CL_136",
+      "latitud": -34.8722796,
+      "longitud": -56.1152279,
+      "estado": "desbordado",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "E_DU_RM_CL_136",
+      "horario": "LUNES A SABADOS CON FERIADOS LABORABLES: Vespertino (14 a 22 hrs.)"
+    },
+    {
+      "referencia_externa": "107392",
+      "ubicacion": "Prueba IM #107392 · circuito E_DU_RM_CL_105",
+      "latitud": -34.8936353,
+      "longitud": -56.1143946,
+      "estado": "roto",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "E_DU_RM_CL_105",
+      "horario": "LUNES, MIERCOLES Y VIERNES CON FERIADOS LABORABLES: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "115636",
+      "ubicacion": "Prueba IM #115636 · circuito D_DU_RM_CL_110",
+      "latitud": -34.855641,
+      "longitud": -56.1531209,
+      "estado": "funcional",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "D_DU_RM_CL_110",
+      "horario": "DOMINGOS, MARTES Y JUEVES CON FERIADOS LABORABLES: Matutino (06 a 14 hrs.)"
+    },
+    {
+      "referencia_externa": "124091",
+      "ubicacion": "Prueba IM #124091 · circuito D_DU_RM_CL_111",
+      "latitud": -34.8517104,
+      "longitud": -56.1706557,
+      "estado": "desbordado",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "D_DU_RM_CL_111",
+      "horario": "LUNES, MIERCOLES Y VIERNES CON FERIADOS LABORABLES: Matutino (06 a 14 hrs.)"
+    },
+    {
+      "referencia_externa": "134743",
+      "ubicacion": "Prueba IM #134743 · circuito C_DU_RM_CL_109",
+      "latitud": -34.8753625,
+      "longitud": -56.2002054,
+      "estado": "roto",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "C_DU_RM_CL_109",
+      "horario": "DOMINGOS, MARTES Y JUEVES CON FERIADOS LABORABLES: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "175583",
+      "ubicacion": "Prueba IM #175583 · circuito CH_DU_RM_CL_101",
+      "latitud": -34.9229399,
+      "longitud": -56.1545443,
+      "estado": "funcional",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "CH_DU_RM_CL_101",
+      "horario": "DOMINGOS A VIERNES Y TODOS LOS FERIADOS: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "177698",
+      "ubicacion": "Prueba IM #177698 · circuito B_DU_RM_CL_01",
+      "latitud": -34.9037562,
+      "longitud": -56.2056014,
+      "estado": "desbordado",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "B_DU_RM_CL_01",
+      "horario": "LUNES A SABADOS CON FERIADO LABORABLE: Vespertino (14 a 22 hrs.)"
+    },
+    {
+      "referencia_externa": "100544",
+      "ubicacion": "Prueba IM #100544 · circuito A_DU_RM_CL_106",
+      "latitud": -34.8620431,
+      "longitud": -56.2139121,
+      "estado": "roto",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "A_DU_RM_CL_106",
+      "horario": "DOMINGOS, MARTES Y JUEVES CON FERIADOS LABORABLES: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "117943",
+      "ubicacion": "Prueba IM #117943 · circuito G_DU_RM_CL_101",
+      "latitud": -34.8446856,
+      "longitud": -56.1973751,
+      "estado": "funcional",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "G_DU_RM_CL_101",
+      "horario": "DOMINGOS, MARTES Y JUEVES CON FERIADOS LABORABLES: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "141652",
+      "ubicacion": "Prueba IM #141652 · circuito F_DU_RM_CL_104",
+      "latitud": -34.8480422,
+      "longitud": -56.1384271,
+      "estado": "desbordado",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "F_DU_RM_CL_104",
+      "horario": "LUNES, MIERCOLES Y VIERNES CON FERIADOS LABORABLES: Matutino (06 a 14 hrs.)"
+    },
+    {
+      "referencia_externa": "141911",
+      "ubicacion": "Prueba IM #141911 · circuito F_DU_RM_CL_106",
+      "latitud": -34.856407,
+      "longitud": -56.1168096,
+      "estado": "roto",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "F_DU_RM_CL_106",
+      "horario": "MARTES JUEVES Y SABADOS CON FERIADOS LABORABLES: Matutino (06 a 14 hrs.)"
+    },
+    {
+      "referencia_externa": "177316",
+      "ubicacion": "Prueba IM #177316 · circuito B_DU_RM_CL_01",
+      "latitud": -34.9081833,
+      "longitud": -56.2137299,
+      "estado": "funcional",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "B_DU_RM_CL_01",
+      "horario": "LUNES A SABADOS CON FERIADO LABORABLE: Vespertino (14 a 22 hrs.)"
+    },
+    {
+      "referencia_externa": "105247",
+      "ubicacion": "Prueba IM #105247 · circuito E_DU_RM_CL_106",
+      "latitud": -34.8856968,
+      "longitud": -56.1065919,
+      "estado": "desbordado",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "E_DU_RM_CL_106",
+      "horario": "DOMINGOS, MIERCOLES Y VIERNES: Vespertino (14 a 22 hrs.)"
+    },
+    {
+      "referencia_externa": "124289",
+      "ubicacion": "Prueba IM #124289 · circuito D_DU_RM_CL_113",
+      "latitud": -34.8425194,
+      "longitud": -56.1580753,
+      "estado": "roto",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "D_DU_RM_CL_113",
+      "horario": "LUNES, MIERCOLES Y VIERNES CON FERIADOS LABORABLES: Matutino (06 a 14 hrs.)"
+    },
+    {
+      "referencia_externa": "175498",
+      "ubicacion": "Prueba IM #175498 · circuito CH_DU_RM_CL_101",
+      "latitud": -34.9283769,
+      "longitud": -56.1601128,
+      "estado": "funcional",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "CH_DU_RM_CL_101",
+      "horario": "DOMINGOS A VIERNES Y TODOS LOS FERIADOS: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "100426",
+      "ubicacion": "Prueba IM #100426 · circuito A_DU_RM_CL_106",
+      "latitud": -34.8682002,
+      "longitud": -56.2224368,
+      "estado": "desbordado",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "A_DU_RM_CL_106",
+      "horario": "DOMINGOS, MARTES Y JUEVES CON FERIADOS LABORABLES: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "105302",
+      "ubicacion": "Prueba IM #105302 · circuito E_DU_RM_CL_107",
+      "latitud": -34.8782111,
+      "longitud": -56.1026998,
+      "estado": "roto",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "E_DU_RM_CL_107",
+      "horario": "MARTES JUEVES Y SABADOS CON FERIADOS LABORABLES: Vespertino (14 a 22 hrs.)"
+    },
+    {
+      "referencia_externa": "107430",
+      "ubicacion": "Prueba IM #107430 · circuito E_DU_RM_CL_105",
+      "latitud": -34.8957907,
+      "longitud": -56.1092846,
+      "estado": "funcional",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "E_DU_RM_CL_105",
+      "horario": "LUNES, MIERCOLES Y VIERNES CON FERIADOS LABORABLES: Nocturno (22 a 06 hrs.)"
+    },
+    {
+      "referencia_externa": "117157",
+      "ubicacion": "Prueba IM #117157 · circuito G_DU_RM_CL_115",
+      "latitud": -34.8369877,
+      "longitud": -56.1849775,
+      "estado": "desbordado",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "G_DU_RM_CL_115",
+      "horario": "LUNES, MIERCOLES Y VIERNES CON FERIADOS LABORABLES: Matutino (06 a 14 hrs.)"
+    },
+    {
+      "referencia_externa": "124394",
+      "ubicacion": "Prueba IM #124394 · circuito D_DU_RM_CL_114",
+      "latitud": -34.8395741,
+      "longitud": -56.1500713,
+      "estado": "roto",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "D_DU_RM_CL_114",
+      "horario": "MARTES JUEVES Y SABADOS CON FERIADOS LABORABLES: Matutino (06 a 14 hrs.)"
+    },
+    {
+      "referencia_externa": "100705",
+      "ubicacion": "Prueba IM #100705 · circuito A_DU_RM_CL_108",
+      "latitud": -34.8500403,
+      "longitud": -56.214529,
+      "estado": "funcional",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "A_DU_RM_CL_108",
+      "horario": "LUNES, MIERCOLES Y VIERNES CON FERIADOS LABORABLES: Matutino (06 a 14 hrs.)"
+    },
+    {
+      "referencia_externa": "141858",
+      "ubicacion": "Prueba IM #141858 · circuito F_DU_RM_CL_106",
+      "latitud": -34.8533833,
+      "longitud": -56.1205237,
+      "estado": "desbordado",
+      "tipo_residuo": "Domiciliarios",
+      "circuito": "F_DU_RM_CL_106",
+      "horario": "MARTES JUEVES Y SABADOS CON FERIADOS LABORABLES: Matutino (06 a 14 hrs.)"
+    }
+  ]
+}

@@ -32,6 +32,11 @@ final class Operacion
         $this->ejecutar("UPDATE $tabla SET $campos WHERE id=?", [...array_values($datos), $id]);
     }
 
+    public function cambiarEstadoCuadrilla(int $id, string $estado): void
+    {
+        $this->ejecutar('UPDATE cuadrillas SET estado_actividad=?, estado_actividad_desde=CURRENT_TIMESTAMP WHERE id=?', [$estado, $id]);
+    }
+
     public function exigir(string $sql, array $valores, string $mensaje): array
     {
         $rows = $this->consultar($sql, $valores);
@@ -87,7 +92,7 @@ final class Operacion
 
     public function incidenciaPropiaAbierta(array $valores, string $mensaje): array
     {
-        return $this->exigir('SELECT id FROM incidencias WHERE id=? AND usuario_id=? AND estado_incidencia<>\'cerrada\'', $valores, $mensaje);
+        return $this->exigir('SELECT id FROM incidencias WHERE id=? AND usuario_id=? AND estado_incidencia NOT IN (\'cerrada\',\'reportada\')', $valores, $mensaje);
     }
 
     public function camionExistente(array $valores, string $mensaje): array
@@ -123,17 +128,12 @@ final class Operacion
 
     public function camionDisponibleDeCuadrilla(array $valores, string $mensaje): array
     {
-        return $this->exigir('SELECT id FROM camiones WHERE matricula=? AND activo=1 AND estado=\'Disponible\' AND cuadrilla_id=? FOR UPDATE', $valores, $mensaje);
+        return $this->exigir('SELECT id FROM camiones WHERE matricula=? AND activo=1 AND estado IN (\'Disponible\',\'En Ruta\') AND cuadrilla_id=? FOR UPDATE', $valores, $mensaje);
     }
 
     public function contenedoresDeRuta(array $valores = []): array
     {
         return $this->consultar('SELECT c.id,c.en_servicio FROM contiene t JOIN contenedores c ON c.id=t.contenedor_id WHERE t.ruta_id=?', $valores);
-    }
-
-    public function incidenciaAbiertaDelContenedor(array $valores, string $mensaje): array
-    {
-        return $this->exigir('SELECT i.id FROM incidencias i JOIN sobre s ON s.incidencia_id=i.id WHERE s.contenedor_id=? AND i.estado_incidencia=\'abierta\' FOR UPDATE', $valores, $mensaje);
     }
 
     public function vincularCuadrillaRuta(array $valores = []): void
@@ -144,11 +144,6 @@ final class Operacion
     public function vincularCamionRuta(array $valores = []): void
     {
         $this->ejecutar('INSERT IGNORE INTO realiza(matricula,ruta_id) VALUES (?,?)', $valores);
-    }
-
-    public function planificarIncidencias(array $valores = []): void
-    {
-        $this->ejecutar("UPDATE incidencias i JOIN sobre s ON s.incidencia_id=i.id JOIN contiene c ON c.contenedor_id=s.contenedor_id SET i.ruta_id=?,i.cuadrilla_id=?,i.matricula_camion=? WHERE c.ruta_id=? AND i.estado_incidencia='abierta'", $valores);
     }
 
     public function usuarioActivo(array $valores, string $mensaje): array
@@ -173,7 +168,7 @@ final class Operacion
 
     public function asignarChofer(array $valores = []): void
     {
-        $this->ejecutar('UPDATE camiones SET chofer_id=?,modelo=? WHERE matricula=?', $valores);
+        $this->ejecutar('UPDATE camiones SET chofer_id=? WHERE matricula=?', $valores);
     }
 
     public function operarioActivo(array $valores, string $mensaje): array

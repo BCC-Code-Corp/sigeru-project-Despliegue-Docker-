@@ -39,8 +39,9 @@ class ContenedorController
         return ["status" => "error", "message" => "Contenedor no encontrado.", "_code" => 404];
     }
 
-    private function validarDatos(array $datos): ?string
+    private function validarDatos(array $datos, bool $coordenadasObligatorias = false): ?string
     {
+        if ($error = Validacion::coordenadas($datos, $coordenadasObligatorias)) return $error;
         if (empty($datos['ubicacion']) || empty($datos['estado'])) {
             return "Ubicación y estado son requeridos.";
         }
@@ -60,12 +61,12 @@ class ContenedorController
 
     public function crear(array $datos): array
     {
-        $error = $this->validarDatos($datos);
+        $error = $this->validarDatos($datos, true);
         if ($error) {
             return ["status" => "error", "message" => $error, "_code" => 400];
         }
 
-        $this->contenedorModel->crear(trim($datos['ubicacion']), trim($datos['estado']), trim($datos['tipo_residuo']), (bool)($datos['en_servicio'] ?? 1));
+        $this->contenedorModel->crear(trim($datos['ubicacion']), trim($datos['estado']), trim($datos['tipo_residuo']), (bool)($datos['en_servicio'] ?? 1), (float)$datos['latitud'], (float)$datos['longitud']);
 
         return ["status" => "success", "message" => "Contenedor registrado con éxito.", "_code" => 201];
     }
@@ -87,7 +88,7 @@ class ContenedorController
             return ["status" => "error", "message" => $error, "_code" => 400];
         }
 
-        $this->contenedorModel->actualizar($id, trim($datos['ubicacion']), trim($datos['estado']), trim($datos['tipo_residuo']), (bool)($datos['en_servicio'] ?? $actual['en_servicio']));
+        $this->contenedorModel->actualizar($id, trim($datos['ubicacion']), trim($datos['estado']), trim($datos['tipo_residuo']), (bool)($datos['en_servicio'] ?? $actual['en_servicio']), isset($datos['latitud']) && $datos['latitud'] !== '' ? (float)$datos['latitud'] : null, isset($datos['longitud']) && $datos['longitud'] !== '' ? (float)$datos['longitud'] : null);
 
         return ["status" => "success", "message" => "Contenedor actualizado correctamente."];
     }

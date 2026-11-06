@@ -57,8 +57,8 @@ try {
     $anon = new ClientePrueba();
     $vecino = new ClientePrueba();
     $anon->pedir('usuarios/usuarios.php', 'GET', null, 401);
-    $admin->login('admin@sigeru.uy', 'admin123');
-    $vecino->login('vecino@sigeru.uy', 'vecino123');
+    $admin->login(getenv('SIGERU_TEST_ADMIN_EMAIL') ?: 'admin@sigeru.uy', getenv('SIGERU_TEST_ADMIN_PASSWORD') ?: throw new RuntimeException('Definí SIGERU_TEST_ADMIN_PASSWORD para las pruebas.'));
+    $vecino->login(getenv('SIGERU_TEST_VECINO_EMAIL') ?: 'vecino@sigeru.uy', getenv('SIGERU_TEST_VECINO_PASSWORD') ?: throw new RuntimeException('Definí SIGERU_TEST_VECINO_PASSWORD para las pruebas.'));
     $vecino->pedir('usuarios/usuarios.php', 'GET', null, 403);
     $admin->pedir('usuarios/usuarios.php', 'POST', [], 403, false);
     foreach (['usuarios/usuarios.php', 'gestion/contenedores.php', 'gestion/centros_acopio.php', 'gestion/maquinaria.php', 'recoleccion/camiones.php'] as $ruta) {

@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Panel de Control - SiGeRU</title>
-    <link rel="stylesheet" href="style.css?v=2" />
+    <link rel="icon" type="image/svg+xml" href="../assets/LogoSiGeRU.svg" />
+    <link rel="stylesheet" href="style.css?v=9" />
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -392,7 +393,7 @@
         }
       }
     </style>
-    <link rel="stylesheet" href="panel.css?v=10" />
+    <link rel="stylesheet" href="panel.css?v=12" />
   </head>
   <body class="cuerpo-panel">
     <!-- BARRA LATERAL -->
@@ -540,9 +541,7 @@
     <main class="contenido-panel">
       <header class="barra-superior-panel">
         <button type="button" id="toggle-sidebar" class="btn-toggle" aria-controls="sidebar" aria-expanded="false">☰ Menú</button>
-        <div style="font-weight: bold; color: var(--color4); font-size: 1.2rem">
-          ♻️ SiGeRU
-        </div>
+        <img src="../assets/LogoSiGeRU.svg" alt="SiGeRU" class="logo-sigeru-panel" />
       </header>
 
       <nav
@@ -563,7 +562,7 @@
         >
       </nav>
 
-      <section style="padding: 25px 25px 0 25px">
+      <section id="bloque-bienvenida" style="padding: 25px 25px 0 25px">
         <h1 id="texto-bienvenida" style="margin: 0; color: var(--color4)">
           ¡Bienvenido!
         </h1>
@@ -604,12 +603,14 @@
 
     <script type="module">
       import { idioma } from "./config.js";
-      import { confirmarOperacion } from "./confirmaciones.js?v=4";
+      import { confirmarOperacion, solicitarDatos } from "./confirmaciones.js?v=6";
+      import { montarControlEstado, montarListaEstados } from "./estado-cuadrilla.js?v=1";
       import {
         validarPassword,
         validarCedula,
         mensajePassword,
-      } from "./validacion.js";
+        validarMotivoReporte,
+      } from "./validacion.js?v=2";
       document.documentElement.lang = idioma;
       // ==================================================
       //  ESTADO / SESIÓN
@@ -859,7 +860,17 @@
             `;
       }
 
+      // La bienvenida ("¡Bienvenido, nombre!") solo se muestra en el inicio.
+      function mostrarBienvenida(visible) {
+        document.getElementById("bloque-bienvenida").hidden = !visible;
+      }
+      document.addEventListener("click", function (e) {
+        const enlace = e.target.closest("a.item-menu");
+        if (enlace) mostrarBienvenida(enlace.id === "menu-dashboard");
+      });
+
       function renderDashboard() {
+        mostrarBienvenida(true);
         espacio.innerHTML = `
                 <div class="seccion-bloque">
                     <h3>${rolActual === "administrador" ? "Backoffice de administración" : "Dashboard"}</h3>
@@ -991,6 +1002,15 @@
                 "<p style='color:red;'>Error al cargar tus estadísticas.</p>";
             });
         } else if (rolActual === "operario") {
+          const bloqueEstados = document.createElement("div");
+          bloqueEstados.className = "seccion-bloque";
+          bloqueEstados.innerHTML =
+            "<h3>Estado de las cuadrillas</h3><p class='descripcion'>Qué está haciendo cada cuadrilla en este momento.</p><div id='lista-estado-cuadrillas'></div>";
+          espacio.appendChild(bloqueEstados);
+          montarListaEstados(
+            document.getElementById("lista-estado-cuadrillas"),
+            apiFetch,
+          );
           Promise.all([
             apiFetch("../Backend/api/gestion/centros_acopio.php"),
             apiFetch("../Backend/api/gestion/contenedores.php"),
@@ -1403,6 +1423,7 @@
         const e = (estado || "").toLowerCase();
         if (e === "cerrada") return "#16a34a";
         if (e === "en curso") return "#eab308";
+        if (e === "reportada") return "#6b7280";
         return "#dc2626";
       }
 
@@ -1500,7 +1521,7 @@
                   texto: c.ubicacion,
                   lat: coordenadasGuardadas(c)?.lat,
                   lon: coordenadasGuardadas(c)?.lon,
-                  popup: `🗑️ Contenedor #${escaparHtml(c.id)}<br>Estado: ${escaparHtml(c.estado)}${Number(c.datos_prueba) === 1 ? "<br>Ubicación IM · estado simulado para pruebas" : ""}`,
+                  popup: `🗑️ Contenedor #${escaparHtml(c.id)}<br>Estado: ${escaparHtml(c.estado)}${Number(c.datos_prueba) === 1 ? (String(c.fuente || "").includes("datos-abiertos") ? "<br>Ubicación IM · estado simulado para pruebas" : "<br>Ubicación y estado simulados") : ""}`,
                 });
               });
             }
@@ -1513,7 +1534,7 @@
               centros.forEach(function (c) {
                 puntos.push({
                   texto: c.ubicacion,
-                  popup: `♻️ ${escaparHtml(c.nombre)}<br>Estado: ${escaparHtml(c.estado)}${Number(c.datos_prueba) === 1 ? "<br>Ubicación IM · estado simulado para pruebas" : ""}`,
+                  popup: `♻️ ${escaparHtml(c.nombre)}<br>Estado: ${escaparHtml(c.estado)}${Number(c.datos_prueba) === 1 ? (String(c.fuente || "").includes("datos-abiertos") ? "<br>Ubicación IM · estado simulado para pruebas" : "<br>Ubicación y estado simulados") : ""}`,
                 });
               });
             }
@@ -1612,6 +1633,7 @@
                 <div class="seccion-bloque">
                     <h3>Reportar Incidencia de Contenedor</h3>
                     <p class="descripcion">Seleccioná en el mapa el contenedor que querés reportar y completá los detalles.</p>
+                    <div id="aviso-penalizacion"></div>
                     <div id="agente-inline-reportar"></div>
                     <div class="formulario-interno">
                         <form id="form-nuevo-reporte" class="form-fila" onsubmit="return false;">
@@ -1646,6 +1668,26 @@
         if (window.SiGeRUAgente) {
           window.SiGeRUAgente.insertar("agente-inline-reportar", "comunidad");
         }
+
+        // Aviso si el vecino está penalizado por reportes falsos (el servidor también lo bloquea).
+        fetch("../Backend/api/usuarios/sesion.php", { credentials: "same-origin" })
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (r) {
+            const p = r.usuario && r.usuario.penalizacion;
+            const aviso = document.getElementById("aviso-penalizacion");
+            if (!p || !p.activa || !aviso) return;
+            const horas = Math.max(1, Math.ceil(p.minutos_restantes / 60));
+            aviso.className = "aviso-info";
+            aviso.setAttribute("role", "alert");
+            aviso.textContent = p.permanente
+              ? "Tu cuenta está penalizada de forma permanente por reportes falsos: no podés reportar incidencias. Si creés que es un error, contactá a un administrador."
+              : "Estás penalizado por reportes falsos (nivel " + p.nivel + "): podrás volver a reportar incidencias en aproximadamente " + horas + " hora(s).";
+            const enviar = document.getElementById("btn-enviar-incidencia");
+            if (enviar) enviar.disabled = true;
+          })
+          .catch(function () {});
 
         const inputUbicacion = document.getElementById("inp-ubicacion");
         const inputContenedor = document.getElementById("inp-contenedor");
@@ -1751,13 +1793,13 @@
         espacio.innerHTML = `
                 <div class="seccion-bloque">
                     <h3>Confirmar Ubicación de la Incidencia</h3>
-                    <p class="descripcion">Así va a quedar marcada la incidencia en el mapa. Si no es el lugar correcto, hacé click en el mapa (o arrastrá el pin) para corregirla.</p>
+                    <p class="descripcion">Así va a quedar marcada la incidencia en el mapa. Solo se puede elegir uno de los contenedores del mapa: si no es el correcto, hacé click en otro contenedor y elegilo.</p>
                     <div id="mapa-preview-lienzo" class="mapa-lienzo"></div>
                     <div id="preview-estado-ubicacion" class="aviso-info">Buscando la ubicación en el mapa...</div>
                     <div style="margin-top:12px;">
                         <label style="font-weight:bold; font-size:0.85rem;">Dirección que se va a guardar:</label>
-                        <input type="text" id="preview-ubicacion-final" class="campo-entrada" value="${escaparHtml(datos.ubicacion)}">
-                        <small style="display:block; color:#64748b; font-size:0.75rem; margin-top:3px;">Se actualiza sola cuando movés el pin, pero también la podés editar a mano.</small>
+                        <input type="text" id="preview-ubicacion-final" class="campo-entrada" readonly value="${escaparHtml(datos.ubicacion)}">
+                        <small style="display:block; color:#64748b; font-size:0.75rem; margin-top:3px;">Es la dirección del contenedor seleccionado y se actualiza sola al elegir otro.</small>
                     </div>
                     <div style="display:flex; gap:12px; margin-top:15px; flex-wrap:wrap;">
                         <button type="button" id="btn-volver-editar" class="btn-mini" style="background:#64748b;">← Volver a Editar</button>
@@ -1796,60 +1838,83 @@
 
         let marcador = null;
         let coordsFinal = { lat: null, lon: null };
+        const textoSeleccion =
+          "📍 Acá va a quedar marcada la incidencia. Para cambiarla, hacé click en otro contenedor del mapa y elegilo.";
 
-        // Coloca (o mueve, si ya existe) el pin de la incidencia en el
-        // punto dado y guarda esas coordenadas como las que se van a
-        // enviar al confirmar. Cuando el reposicionamiento es manual
-        // (click en el mapa o arrastre del pin) se vuelve a geocodificar
-        // en modo inverso para que la dirección que se guarda coincida
-        // con el punto elegido, en vez de quedar con la dirección
-        // original que el vecino había escrito en el paso anterior.
-        function colocarPin(lat, lon, centrar, esManual) {
+        // El pin marca el contenedor elegido. No se puede mover a mano ni
+        // colocar en cualquier punto: solo se reubica al elegir otro contenedor.
+        function colocarPin(lat, lon, centrar) {
           coordsFinal = { lat: lat, lon: lon };
           if (marcador) {
             marcador.setLatLng([lat, lon]);
           } else {
-            marcador = L.marker([lat, lon], { draggable: true }).addTo(mapa);
-            marcador.on("dragend", function () {
-              const pos = marcador.getLatLng();
-              colocarPin(pos.lat, pos.lng, false, true);
-            });
+            marcador = L.marker([lat, lon], { zIndexOffset: 1000 }).addTo(mapa);
           }
           if (centrar) mapa.setView([lat, lon], 17);
           btnConfirmar.disabled = false;
-
-          if (esManual) {
-            avisoEstado.innerHTML = "📍 Buscando la dirección de este punto...";
-            geocodificarInverso(lat, lon).then(function (direccion) {
-              if (direccion) {
-                inputUbicacionFinal.value = direccion;
-              }
-              avisoEstado.innerHTML =
-                "📍 Acá va a quedar marcada la incidencia. Podés arrastrar el pin o volver a hacer click en el mapa para ajustarlo.";
-            });
-          } else {
-            avisoEstado.innerHTML =
-              "📍 Acá va a quedar marcada la incidencia. Podés arrastrar el pin o volver a hacer click en el mapa para ajustarlo.";
-          }
+          avisoEstado.innerHTML = textoSeleccion;
         }
 
-        // Un click en cualquier parte del mapa reubica el pin ahí.
-        mapa.on("click", function (e) {
-          colocarPin(e.latlng.lat, e.latlng.lng, false, true);
-        });
+        // Todos los contenedores definidos se ven en el mapa; al elegir uno
+        // se actualizan el pin, la dirección y el contenedor del reporte.
+        function elegirContenedor(contenedor, coords) {
+          datos.contenedor_id = contenedor.id;
+          datos.ubicacion = contenedor.ubicacion;
+          inputUbicacionFinal.value = contenedor.ubicacion;
+          mapa.closePopup();
+          colocarPin(coords.lat, coords.lon, false);
+        }
 
-        // Se intenta ubicar por el texto de la dirección; si no se
-        // encuentra, el vecino la marca a mano con un click.
+        function dibujarContenedor(contenedor, coords) {
+          const punto = L.circleMarker([coords.lat, coords.lon], {
+            radius: 8,
+            color: "#1e3a8a",
+            weight: 2,
+            fillColor: "#3b82f6",
+            fillOpacity: 0.75,
+          }).addTo(mapa);
+          punto.bindPopup(
+            `<strong>Contenedor #${escaparHtml(contenedor.id)}</strong><br>${escaparHtml(contenedor.ubicacion)}<br><button type="button" data-elegir-contenedor="${escaparHtml(contenedor.id)}">Elegir este contenedor</button>`,
+          );
+          punto.on("popupopen", function () {
+            const boton = document.querySelector(
+              `[data-elegir-contenedor="${contenedor.id}"]`,
+            );
+            if (boton)
+              boton.onclick = function () {
+                elegirContenedor(contenedor, coords);
+              };
+          });
+        }
+
+        // El contenedor del reporte se ubica primero (por sus coordenadas o su
+        // dirección); después se dibujan todos los contenedores del sistema.
         Promise.resolve(coordenadasGuardadas(datos) || geocodificar(datos.ubicacion)).then(function (coords) {
           if (coords) {
-            colocarPin(coords.lat, coords.lon, true, false);
+            colocarPin(coords.lat, coords.lon, true);
           } else {
             avisoEstado.innerHTML =
               'No pudimos ubicar "' +
               escaparHtml(datos.ubicacion) +
-              '" automáticamente en el mapa. Hacé click en el punto correcto para continuar.';
+              '" en el mapa. Elegí otro contenedor o volvé a editar el reporte.';
           }
         });
+
+        apiFetch("../Backend/api/gestion/contenedores.php")
+          .then(async function (respuesta) {
+            const contenedores = respuesta.data || [];
+            for (const contenedor of contenedores) {
+              if (!document.getElementById("mapa-preview-lienzo")) return;
+              const coords =
+                coordenadasGuardadas(contenedor) ||
+                (await geocodificar(contenedor.ubicacion));
+              if (coords) dibujarContenedor(contenedor, coords);
+            }
+          })
+          .catch(function () {
+            avisoEstado.innerHTML =
+              "No se pudieron cargar los demás contenedores del mapa.";
+          });
 
         btnConfirmar.addEventListener("click", function () {
           if (coordsFinal.lat === null || coordsFinal.lon === null) {
@@ -1998,11 +2063,23 @@
       function renderGestionarEstado() {
         espacio.innerHTML = `
                 <div class="seccion-bloque">
+                    <h3>Estado de la cuadrilla</h3>
+                    <div id="control-estado-cuadrilla"></div>
+                </div>
+                <div class="seccion-bloque">
                     <h3>Gestionar Estado de las Incidencias</h3>
-                    <p class="descripcion">Marcá una incidencia como solucionada cuando termine la recolección.</p>
                     <div id="contenedor-tabla-cuadrilla">Cargando...</div>
                 </div>
             `;
+        if (sesion.cuadrilla_id)
+          montarControlEstado(
+            document.getElementById("control-estado-cuadrilla"),
+            sesion.cuadrilla_id,
+            apiFetch,
+          );
+        else
+          document.getElementById("control-estado-cuadrilla").textContent =
+            "Todavía no pertenecés a una cuadrilla.";
         cargarIncidenciasCuadrilla();
       }
       vincularMenu("menu-gestionar-estado", renderGestionarEstado);
@@ -2045,7 +2122,7 @@
                             <td>${escaparHtml(inc.ubicacion)}</td>
                             <td>${inc.matricula_camion || "-"}</td>
                             <td>${escaparHtml(inc.comentario_operario || "-")}</td>
-                            <td><button class="btn-mini btn-resolver" data-id="${escaparHtml(inc.id)}">Marcar como resuelta</button></td>
+                            <td><div class="acciones-fila"><button class="btn-mini btn-resolver" data-id="${escaparHtml(inc.id)}">Marcar como resuelta</button><button class="btn-mini boton-peligro btn-reportar" data-id="${escaparHtml(inc.id)}" data-ubicacion="${escaparHtml(inc.ubicacion)}">Reportar</button></div></td>
                         </tr>
                     `;
             });
@@ -2072,6 +2149,46 @@
                   })
                   .catch(function () {
                     alert("Error al resolver la incidencia.");
+                  });
+              });
+            });
+
+            div.querySelectorAll(".btn-reportar").forEach(function (btn) {
+              btn.addEventListener("click", async function () {
+                const motivo = await solicitarDatos({
+                  titulo: "Reportar incidencia como falsa",
+                  descripcion:
+                    "La incidencia quedará marcada como reportada, se avisará al administrador y el vecino recibirá una penalización. Detallá por qué el reporte es falso.",
+                  detalle: [
+                    ["Incidencia", "#" + btn.dataset.id],
+                    ["Ubicación", btn.dataset.ubicacion],
+                  ],
+                  campo: {
+                    tipo: "textarea",
+                    etiqueta: "Motivo del reporte falso",
+                    ayuda: "Entre 10 y 500 caracteres. Solo texto: no se permiten los caracteres < ni >.",
+                    maximo: 500,
+                    validar: validarMotivoReporte,
+                  },
+                  confirmar: "Confirmar reporte",
+                  peligro: true,
+                });
+                if (motivo === null) return;
+                apiFetch(
+                  "../Backend/api/recoleccion/incidencias.php?id=" +
+                    encodeURIComponent(btn.dataset.id) +
+                    "&accion=reportar",
+                  {
+                    method: "PUT",
+                    body: JSON.stringify({ motivo_reporte: motivo }),
+                  },
+                )
+                  .then(function (data) {
+                    alert(data.message);
+                    cargarIncidenciasCuadrilla();
+                  })
+                  .catch(function () {
+                    alert("Error al reportar la incidencia.");
                   });
               });
             });
@@ -3351,7 +3468,7 @@
       // ==================================================
       //  CARGA INICIAL: Dashboard por defecto
       // ==================================================
-      const { instalarOperaciones } = await import("./operaciones.js?v=4");
+      const { instalarOperaciones } = await import("./operaciones.js?v=7");
       instalarOperaciones({
         apiFetch,
         espacio,

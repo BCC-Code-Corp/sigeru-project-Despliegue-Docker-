@@ -4,16 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SiGeRU - Gestión de Residuos</title>
-    <link rel="stylesheet" href="style.css?v=3" />
+    <link rel="icon" type="image/svg+xml" href="../assets/LogoSiGeRU.svg" />
+    <link rel="stylesheet" href="style.css?v=9" />
   </head>
   <body>
     <header class="encabezado" id="encabezado-principal">
       <div class="empresa">
         <!-- Corregida la ruta para apuntar a assets -->
         <img
-          src="../assets/LogoBCC.png"
+          src="../assets/LogoSiGeRU.svg"
           alt="Logo SiGeRU"
-          class="logo-empresa"
+          class="logo-empresa logo-sigeru"
         />
       </div>
       <div class="acciones">
@@ -36,6 +37,19 @@
 
     <main class="principal-empresa">
       <section id="hero" class="presentacion">
+        <video
+          class="hero-video"
+          autoplay
+          muted
+          loop
+          playsinline
+          preload="auto"
+          poster="../assets/landing-hero-poster.jpg"
+          aria-hidden="true"
+          disablepictureinpicture
+        >
+          <source src="../assets/landing-hero.mp4" type="video/mp4" />
+        </video>
         <div class="hero-blob hero-blob-1"></div>
         <div class="hero-blob hero-blob-2"></div>
         <div class="presentacion-texto">
@@ -55,11 +69,6 @@
             >
           </div>
         </div>
-        <img
-          class="img-presentacion"
-          src="../assets/Camion1.png"
-          alt="Representación de gestión de residuos"
-        />
       </section>
 
       <section class="problema reveal">
@@ -182,7 +191,7 @@
 
     <footer class="pie-pagina">
       <div class="footer-producto">
-        <div class="pie-pagina-marca">♻️ SiGeRU</div>
+        <div class="pie-pagina-marca"><img src="../assets/LogoSiGeRU.svg" alt="SiGeRU" class="logo-sigeru-pie" /></div>
         <p>Gestión de residuos urbanos clara y coordinada.</p>
       </div>
       <div class="footer-navegacion">

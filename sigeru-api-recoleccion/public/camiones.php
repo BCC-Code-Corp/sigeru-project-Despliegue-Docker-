@@ -14,11 +14,11 @@
  * Respuesta: { status, message?, data? }
  */
 
-require_once __DIR__ . '/../app/config/conexion.php';
-require_once __DIR__ . '/../app/core/Respuesta.php';
-require_once __DIR__ . '/../app/controllers/CamionController.php';
+require_once __DIR__ . '/../../config/conexion.php';
+require_once __DIR__ . '/../../core/Respuesta.php';
+require_once __DIR__ . '/../../controllers/CamionController.php';
 
-require_once __DIR__ . '/../app/core/Sesion.php';
+require_once __DIR__ . '/../../core/Sesion.php';
 
 try {
     Sesion::proteger($pdo, 'camiones');

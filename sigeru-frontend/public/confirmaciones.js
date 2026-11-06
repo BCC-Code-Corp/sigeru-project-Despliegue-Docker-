@@ -6,7 +6,11 @@ export async function confirmarOperacion(url, opciones = {}) {
   if (
     !["POST", "PUT", "DELETE"].includes(metodo) ||
     recurso === "logout" ||
-    (recurso === "notificaciones" && metodo === "PUT")
+    (recurso === "notificaciones" && metodo === "PUT") ||
+    // Estas acciones ya piden su propia confirmación con formulario (solicitarDatos).
+    recurso === "penalizados" ||
+    destino.searchParams.get("accion") === "reportar" ||
+    destino.searchParams.get("accion") === "estado"
   )
     return true;
   const nombres = {
@@ -103,5 +107,116 @@ export async function confirmarOperacion(url, opciones = {}) {
       { once: true },
     );
     dialog.showModal();
+  });
+}
+
+// Confirmación con un campo de entrada (texto largo o número). Devuelve el valor
+// ingresado ya validado o null si se cancela. Todo el contenido se inserta con
+// textContent/atributos del DOM (nunca como HTML) para evitar XSS.
+export function solicitarDatos({
+  titulo,
+  descripcion,
+  detalle = [],
+  campo,
+  confirmar = "Confirmar",
+  peligro = false,
+}) {
+  const dialog = document.createElement("dialog");
+  dialog.className = "confirmacion";
+  dialog.setAttribute("aria-labelledby", "solicitud-titulo");
+  const form = document.createElement("form");
+  form.method = "dialog";
+  form.noValidate = true;
+
+  const h2 = document.createElement("h2");
+  h2.id = "solicitud-titulo";
+  h2.textContent = titulo;
+  const p = document.createElement("p");
+  p.className = "confirmacion-descripcion";
+  p.textContent = descripcion;
+  const dl = document.createElement("dl");
+  dl.className = "confirmacion-detalle";
+  detalle.forEach(([etiqueta, valor]) => {
+    if (valor === undefined || valor === null || valor === "") return;
+    const dt = document.createElement("dt");
+    dt.textContent = etiqueta;
+    const dd = document.createElement("dd");
+    dd.textContent = String(valor);
+    dl.append(dt, dd);
+  });
+
+  const etiqueta = document.createElement("label");
+  etiqueta.htmlFor = "solicitud-campo";
+  etiqueta.style.cssText = "display:block;font-weight:600;margin:14px 0 6px";
+  etiqueta.textContent = campo.etiqueta;
+  const entrada = document.createElement(
+    campo.tipo === "textarea" ? "textarea" : "input",
+  );
+  entrada.id = "solicitud-campo";
+  entrada.className = "campo-entrada";
+  entrada.style.cssText = "width:100%;box-sizing:border-box";
+  entrada.required = true;
+  entrada.autocomplete = "off";
+  if (campo.tipo === "textarea") {
+    entrada.rows = 4;
+    entrada.maxLength = campo.maximo;
+  } else {
+    entrada.type = "number";
+    entrada.min = "0";
+    entrada.max = String(campo.maximo);
+    entrada.step = "1";
+    entrada.inputMode = "numeric";
+  }
+  const ayuda = document.createElement("small");
+  ayuda.style.cssText = "display:block;margin-top:6px;color:#647268";
+  ayuda.textContent = campo.ayuda || "";
+  const error = document.createElement("p");
+  error.setAttribute("role", "alert");
+  error.hidden = true;
+  error.style.cssText = "color:#a63232;margin:10px 0 0;font-weight:600";
+
+  const acciones = document.createElement("div");
+  acciones.className = "confirmacion-acciones";
+  const cancelar = document.createElement("button");
+  cancelar.type = "button";
+  cancelar.className = "btn-mini boton-secundario";
+  cancelar.textContent = "Cancelar";
+  cancelar.addEventListener("click", () => dialog.close("cancelar"));
+  const aceptar = document.createElement("button");
+  aceptar.type = "submit";
+  aceptar.value = "confirmar";
+  aceptar.className = "btn-mini" + (peligro ? " boton-peligro" : "");
+  aceptar.textContent = confirmar;
+  acciones.append(cancelar, aceptar);
+
+  form.append(h2, p, dl, etiqueta, entrada, ayuda, error, acciones);
+  dialog.append(form);
+
+  form.addEventListener("submit", (evento) => {
+    const mensaje = campo.validar(entrada.value);
+    if (mensaje) {
+      evento.preventDefault();
+      error.textContent = mensaje;
+      error.hidden = false;
+      entrada.focus();
+    }
+  });
+
+  const anterior = document.activeElement;
+  document.body.append(dialog);
+  return new Promise((resolve) => {
+    dialog.addEventListener(
+      "close",
+      () => {
+        const ok = dialog.returnValue === "confirmar";
+        const valor = entrada.value.trim();
+        dialog.remove();
+        if (anterior?.isConnected) anterior.focus();
+        resolve(ok ? valor : null);
+      },
+      { once: true },
+    );
+    dialog.showModal();
+    entrada.focus();
   });
 }

@@ -1,9 +1,12 @@
 <?php
 require_once __DIR__ . '/../models/Operacion.php';
+require_once __DIR__ . '/../core/AsignacionRuta.php';
 
 final class OperacionController
 {
     private Operacion $m;
+    private PDO $pdo;
+    private int $incidenciasAsignadas = 0;
     private const CAMPOS = [
         'cuadrillas' => ['nombre', 'disponibilidad'],
         'rutas' => ['nombre', 'zona', 'frecuencia', 'horario'],
@@ -19,6 +22,7 @@ final class OperacionController
 
     public function __construct(PDO $pdo)
     {
+        $this->pdo = $pdo;
         $this->m = new Operacion($pdo);
     }
 
@@ -44,6 +48,7 @@ final class OperacionController
         }
         if ($recurso === 'relaciones') return $this->relaciones($metodo, $d, $u);
         if (!isset(self::CAMPOS[$recurso])) throw new DomainException('Recurso inexistente.', 404);
+        if ($recurso === 'cuadrillas' && $metodo === 'PUT' && ($f['accion'] ?? '') === 'estado') return $this->estadoCuadrilla($d, $f, $u);
         if ($metodo === 'GET') return ['status' => 'success', 'data' => $this->listar($recurso, $u, $f)];
         if (!in_array($metodo, ['POST', 'PUT', 'DELETE'], true)) throw new DomainException('Método no soportado.', 405);
         $roles = ['administrador'];
@@ -118,7 +123,21 @@ final class OperacionController
         } else $id = $this->m->insertar($recurso, $datos);
         if ($recurso === 'mantenimientos') $this->m->insertar('recibe', ['matricula' => $d['matricula'], 'mantenimiento_id' => $id]);
         if ($recurso === 'reparaciones') $this->m->insertar('necesita', ['incidencia_id' => $d['incidencia_id'], 'reparacion_id' => $id]);
-        return ['status' => 'success', 'message' => $alerta ?: 'Registro guardado.', 'alerta' => $alerta, 'id' => $id, '_code' => $metodo === 'POST' ? 201 : 200];
+        $mensaje = $alerta ?: 'Registro guardado.';
+        if ($recurso === 'asignaciones') $mensaje = 'Ruta asignada. ' . ($this->incidenciasAsignadas ? "Se asignaron automáticamente {$this->incidenciasAsignadas} incidencia(s) abiertas de sus contenedores." : 'No había incidencias abiertas en sus contenedores: las nuevas que se reporten se asignarán solas.');
+        return ['status' => 'success', 'message' => $mensaje, 'alerta' => $alerta, 'id' => $id, '_code' => $metodo === 'POST' ? 201 : 200];
+    }
+
+    /** PUT cuadrillas.php?id=X&accion=estado — la cuadrilla (o el administrador) informa qué está haciendo. */
+    private function estadoCuadrilla(array $d, array $f, array $u): array
+    {
+        Sesion::exigir(['administrador', 'chofer', 'recolector']);
+        $id = (int)($f['id'] ?? 0);
+        if ($u['rol'] !== 'administrador' && (int)$u['cuadrilla_id'] !== $id) throw new DomainException('Solo podés cambiar el estado de tu propia cuadrilla.', 403);
+        if (!in_array($d['estado'] ?? '', ['trabajando', 'inactivo', 'yendo_a_descarga'], true)) throw new DomainException('Estado inválido.');
+        if (!$this->m->registroEditable('cuadrillas', [$id])) throw new DomainException('Cuadrilla inexistente.', 404);
+        $this->m->cambiarEstadoCuadrilla($id, $d['estado']);
+        return ['status' => 'success', 'message' => 'Estado de la cuadrilla actualizado.'];
     }
 
     private function listar(string $r, array $u, array $f): array
@@ -127,6 +146,8 @@ final class OperacionController
         if ($u['rol'] !== 'administrador') {
             if ($r === 'reclamos') $alcance = ['usuario_id' => $u['id']];
             elseif (in_array($r, ['recepciones', 'maquinaria'], true) && $u['rol'] === 'operario') $alcance = ['centro_id' => $u['centro_id']];
+            elseif ($r === 'cuadrillas' && $u['rol'] === 'operario') $alcance = [];
+            elseif ($r === 'cuadrillas' && in_array($u['rol'], ['chofer', 'recolector'], true)) $f['id'] = (int)$u['cuadrilla_id'];
             elseif (in_array($r, ['asignaciones', 'recolecciones', 'rutas'], true) && in_array($u['rol'], ['chofer', 'recolector'], true)) $alcance = ['cuadrilla_id' => $u['cuadrilla_id']];
             elseif ($r !== 'residuos') throw new DomainException('No tenés permiso.', 403);
         }
@@ -157,11 +178,11 @@ final class OperacionController
         if (!$contenedores) throw new DomainException('La ruta no tiene contenedores.');
         foreach ($contenedores as $c) {
             if (!$c['en_servicio']) throw new DomainException('La ruta contiene un contenedor dado de baja.');
-            $this->m->incidenciaAbiertaDelContenedor([$c['id']], 'Cada contenedor debe tener una incidencia abierta (RF-28.1).');
         }
         $this->m->vincularCuadrillaRuta([$d['cuadrilla_id'], $d['ruta_id']]);
         $this->m->vincularCamionRuta([$d['matricula'], $d['ruta_id']]);
-        $this->m->planificarIncidencias([$d['ruta_id'], $d['cuadrilla_id'], $d['matricula'], $d['ruta_id']]);
+        // Las incidencias abiertas de los contenedores de la ruta se asignan solas a esta cuadrilla y camión.
+        $this->incidenciasAsignadas = (new AsignacionRuta($this->pdo))->aplicarRuta((int)$d['ruta_id'], (int)$d['cuadrilla_id'], $d['matricula'], (string)$d['fecha']);
     }
 
     private function relaciones(string $metodo, array $d, array $u): array
@@ -176,11 +197,19 @@ final class OperacionController
                 $tabla = $persona['rol'] === 'chofer' ? 'choferes' : 'recolectores';
                 $this->m->actualizar($tabla, (int)$persona['id'], ['cuadrilla_id' => $d['cuadrilla_id']]);
                 break;
+            case 'quitar_miembro':
+                $persona = $this->m->usuarioActivo([$d['usuario_id'] ?? 0], 'Usuario no disponible.');
+                if (!in_array($persona['rol'], ['chofer', 'recolector'], true)) throw new DomainException('El integrante debe ser chofer o recolector.');
+                $tabla = $persona['rol'] === 'chofer' ? 'choferes' : 'recolectores';
+                $actual = $this->m->consultar("SELECT cuadrilla_id FROM $tabla WHERE id=?", [$persona['id']])[0]['cuadrilla_id'] ?? null;
+                if ($actual && $this->m->consultar("SELECT 1 FROM incidencias WHERE cuadrilla_id=? AND estado_incidencia='en curso' LIMIT 1", [$actual])) throw new DomainException('La cuadrilla tiene incidencias en curso: no se puede quitar a un integrante ahora.', 409);
+                $this->m->actualizar($tabla, (int)$persona['id'], ['cuadrilla_id' => null]);
+                break;
             case 'chofer':
                 $this->m->choferActivo([$d['chofer_id'] ?? 0], 'Chofer no disponible.');
                 $this->m->camionActivo([$d['matricula'] ?? ''], 'Camión no disponible.');
-                $this->m->asignarChofer([$d['chofer_id'], $d['modelo'] ?? null, $d['matricula']]);
-                $this->m->actualizar('choferes', (int)$d['chofer_id'], ['lic_conducir' => $d['lic_conducir'] ?? null]);
+                $this->m->asignarChofer([$d['chofer_id'], $d['matricula']]);
+                if (trim((string)($d['lic_conducir'] ?? '')) !== '') $this->m->actualizar('choferes', (int)$d['chofer_id'], ['lic_conducir' => trim($d['lic_conducir'])]);
                 break;
             case 'operario':
                 $this->centro((int)($d['centro_id'] ?? 0), $u);
