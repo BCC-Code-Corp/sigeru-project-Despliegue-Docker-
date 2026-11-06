@@ -15,11 +15,11 @@
  * administrador las regula por si la cuadrilla cometió un error.
  */
 
-require_once __DIR__ . '/../../config/conexion.php';
-require_once __DIR__ . '/../../core/Respuesta.php';
-require_once __DIR__ . '/../../controllers/PenalizacionController.php';
+require_once __DIR__ . '/../app/config/conexion.php';
+require_once __DIR__ . '/../app/core/Respuesta.php';
+require_once __DIR__ . '/../app/controllers/PenalizacionController.php';
 
-require_once __DIR__ . '/../../core/Sesion.php';
+require_once __DIR__ . '/../app/core/Sesion.php';
 
 try {
     Sesion::proteger($pdo, 'penalizados');

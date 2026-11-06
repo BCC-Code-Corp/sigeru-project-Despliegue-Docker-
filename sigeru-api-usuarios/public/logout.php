@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../../config/conexion.php';
-require_once __DIR__ . '/../../core/Sesion.php';
+require_once __DIR__ . '/../app/config/conexion.php';
+require_once __DIR__ . '/../app/core/Sesion.php';
 try {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') Sesion::rechazar('Método no soportado.', 405);
     Sesion::proteger($pdo, 'logout');

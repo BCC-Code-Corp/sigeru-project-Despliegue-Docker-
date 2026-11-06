@@ -24,12 +24,12 @@
  * cuál transición de estado se está aplicando.
  */
 
-require_once __DIR__ . '/../../config/conexion.php';
-require_once __DIR__ . '/../../core/Respuesta.php';
-require_once __DIR__ . '/../../controllers/IncidenciaController.php';
+require_once __DIR__ . '/../app/config/conexion.php';
+require_once __DIR__ . '/../app/core/Respuesta.php';
+require_once __DIR__ . '/../app/controllers/IncidenciaController.php';
 
 
-require_once __DIR__ . '/../../core/Sesion.php';
+require_once __DIR__ . '/../app/core/Sesion.php';
 
 try {
     Sesion::proteger($pdo, 'incidencias');
