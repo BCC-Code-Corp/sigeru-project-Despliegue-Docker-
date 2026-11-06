@@ -7,11 +7,14 @@
  * Endpoint : /Backend/api/recoleccion/incidencias.php
  * GET    ?usuario_id=X            -> incidencias reportadas por ese usuario (200 / 400)
  * GET    (sin parámetros)         -> lista todas las incidencias (200)
+ * GET    ?reportadas=1            -> incidencias reportadas como falsas (solo administrador) (200 / 403)
  * POST   body: { ubicacion, estado_contenedor, tipo_basura, usuario_id,
  *                latitud?, longitud? }                      -> crea una (201 / 400)
  * PUT    ?id=X&accion=asignar     body: { cuadrilla_id?, matricula_camion,
  *                                          comentario_operario? }  -> asigna logística (200 / 400 / 404)
  * PUT    ?id=X&accion=resolver                                -> marca resuelta (200 / 404)
+ * PUT    ?id=X&accion=reportar    body: { motivo_reporte }    -> la cuadrilla la reporta como falsa y
+ *                                                                penaliza al vecino (200 / 400 / 403 / 404 / 409)
  * Respuesta: { status, message?, data? }
  *
  * No se expone DELETE: una incidencia no se elimina, avanza de estado
@@ -21,12 +24,12 @@
  * cuál transición de estado se está aplicando.
  */
 
-require_once __DIR__ . '/../app/config/conexion.php';
-require_once __DIR__ . '/../app/core/Respuesta.php';
-require_once __DIR__ . '/../app/controllers/IncidenciaController.php';
+require_once __DIR__ . '/../../config/conexion.php';
+require_once __DIR__ . '/../../core/Respuesta.php';
+require_once __DIR__ . '/../../controllers/IncidenciaController.php';
 
 
-require_once __DIR__ . '/../app/core/Sesion.php';
+require_once __DIR__ . '/../../core/Sesion.php';
 
 try {
     Sesion::proteger($pdo, 'incidencias');
@@ -34,6 +37,9 @@ try {
     $metodo = $_SERVER['REQUEST_METHOD'];
 
     if ($metodo === 'GET') {
+        if (isset($_GET['reportadas'])) {
+            Respuesta::enviarResultado($controlador->listarReportadas());
+        }
         if (!empty($_GET['usuario_id']) && $GLOBALS['actor']['rol'] === 'administrador') {
             Respuesta::enviarResultado($controlador->listarPorUsuario($_GET));
         }
@@ -57,8 +63,10 @@ try {
             Respuesta::enviarResultado($controlador->asignar($datos));
         } elseif ($accion === 'resolver') {
             Respuesta::enviarResultado($controlador->resolver($datos));
+        } elseif ($accion === 'reportar') {
+            Respuesta::enviarResultado($controlador->reportar($datos));
         } else {
-            Respuesta::enviar(["status" => "error", "message" => "Falta indicar ?accion=asignar o ?accion=resolver."], 400);
+            Respuesta::enviar(["status" => "error", "message" => "Falta indicar ?accion=asignar, ?accion=resolver o ?accion=reportar."], 400);
         }
     }
 

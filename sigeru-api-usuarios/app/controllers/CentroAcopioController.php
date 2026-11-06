@@ -37,8 +37,9 @@ class CentroAcopioController
         return ["status" => "error", "message" => "Centro de acopio no encontrado.", "_code" => 404];
     }
 
-    private function validarDatos(array $datos): ?string
+    private function validarDatos(array $datos, bool $coordenadasObligatorias = false): ?string
     {
+        if ($error = Validacion::coordenadas($datos, $coordenadasObligatorias)) return $error;
         if (empty($datos['nombre']) || empty($datos['ubicacion'])) {
             return "Nombre y ubicación son requeridos.";
         }
@@ -63,7 +64,7 @@ class CentroAcopioController
 
     public function crear(array $datos): array
     {
-        $error = $this->validarDatos($datos);
+        $error = $this->validarDatos($datos, true);
         if ($error) {
             return ["status" => "error", "message" => $error, "_code" => 400];
         }
@@ -75,7 +76,9 @@ class CentroAcopioController
             trim($datos['estado'] ?? 'Operativo')
         );
 
-        $this->centroModel->guardarCapacidad($this->centroModel->ultimoId(), $datos);
+        $nuevoId = $this->centroModel->ultimoId();
+        $this->centroModel->guardarCapacidad($nuevoId, $datos);
+        $this->centroModel->guardarCoordenadas($nuevoId, (float)$datos['latitud'], (float)$datos['longitud']);
         return ["status" => "success", "message" => "Centro de acopio registrado con éxito.", "_code" => 201];
     }
 
@@ -99,6 +102,7 @@ class CentroAcopioController
         );
 
         $this->centroModel->guardarCapacidad($id, $datos);
+        if (isset($datos['latitud'], $datos['longitud']) && $datos['latitud'] !== '') $this->centroModel->guardarCoordenadas($id, (float)$datos['latitud'], (float)$datos['longitud']);
         $centro = $this->centroModel->buscarPorId($id);
         if ($centro['capacidad_ocupada'] > $centro['capacidad']) return ['status' => 'success', 'message' => 'Centro actualizado. Alerta: la capacidad ocupada supera la máxima.', 'alerta' => true];
         return ["status" => "success", "message" => "Centro de acopio actualizado correctamente."];

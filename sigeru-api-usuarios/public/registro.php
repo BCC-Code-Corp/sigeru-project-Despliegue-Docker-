@@ -14,11 +14,11 @@
  * con otros roles se usa el CRUD de administración: usuarios.php.
  */
 
-require_once __DIR__ . '/../app/config/conexion.php';
-require_once __DIR__ . '/../app/core/Respuesta.php';
-require_once __DIR__ . '/../app/controllers/AuthController.php';
+require_once __DIR__ . '/../../config/conexion.php';
+require_once __DIR__ . '/../../core/Respuesta.php';
+require_once __DIR__ . '/../../controllers/AuthController.php';
 
-require_once __DIR__ . '/../app/core/Sesion.php';
+require_once __DIR__ . '/../../core/Sesion.php';
 
 try {
     Sesion::proteger($pdo, 'registro');

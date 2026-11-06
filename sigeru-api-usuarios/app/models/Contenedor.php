@@ -32,15 +32,19 @@ class Contenedor
     }
 
     /** Registra un contenedor nuevo. */
-    public function crear(string $ubicacion, string $estado, string $tipoResiduo, bool $enServicio = true): bool
+    public function crear(string $ubicacion, string $estado, string $tipoResiduo, bool $enServicio = true, ?float $latitud = null, ?float $longitud = null): bool
     {
-        $stmt = $this->pdo->prepare("INSERT INTO contenedores (ubicacion, estado, tipo_residuo, en_servicio) VALUES (?, ?, ?, ?)");
-        return $stmt->execute([$ubicacion, $estado, $tipoResiduo, (int)$enServicio]);
+        $stmt = $this->pdo->prepare("INSERT INTO contenedores (ubicacion, estado, tipo_residuo, en_servicio, latitud, longitud) VALUES (?, ?, ?, ?, ?, ?)");
+        return $stmt->execute([$ubicacion, $estado, $tipoResiduo, (int)$enServicio, $latitud, $longitud]);
     }
 
     /** Actualiza ubicación y estado de un contenedor existente. */
-    public function actualizar(int $id, string $ubicacion, string $estado, string $tipoResiduo, bool $enServicio = true): bool
+    public function actualizar(int $id, string $ubicacion, string $estado, string $tipoResiduo, bool $enServicio = true, ?float $latitud = null, ?float $longitud = null): bool
     {
+        if ($latitud !== null && $longitud !== null) {
+            $stmt = $this->pdo->prepare("UPDATE contenedores SET latitud = ?, longitud = ?, ubicacion = ?, estado = ?, tipo_residuo = ?, en_servicio=? WHERE id = ? AND activo=1");
+            return $stmt->execute([$latitud, $longitud, $ubicacion, $estado, $tipoResiduo, (int)$enServicio, $id]);
+        }
         $stmt = $this->pdo->prepare("UPDATE contenedores SET latitud = IF(ubicacion = ?, latitud, NULL), longitud = IF(ubicacion = ?, longitud, NULL), ubicacion = ?, estado = ?, tipo_residuo = ?, en_servicio=? WHERE id = ? AND activo=1");
         return $stmt->execute([$ubicacion, $ubicacion, $ubicacion, $estado, $tipoResiduo, (int)$enServicio, $id]);
     }

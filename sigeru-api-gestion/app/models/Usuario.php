@@ -47,7 +47,7 @@ class Usuario
     /** Devuelve todos los usuarios, de cualquier rol, para el backoffice. */
     public function listarTodos(): array
     {
-        $stmt = $this->pdo->query("SELECT u.id, u.nombre, u.email, u.cedula, u.rol, u.estado_registro, o.centro_id, o.especialidad FROM usuarios u LEFT JOIN operarios o ON o.id=u.id WHERE u.activo=1 ORDER BY u.nombre ASC");
+        $stmt = $this->pdo->query("SELECT u.id, u.nombre, u.email, u.cedula, u.rol, u.estado_registro, o.centro_id, o.especialidad, COALESCE(ch.cuadrilla_id, re.cuadrilla_id) AS cuadrilla_id FROM usuarios u LEFT JOIN operarios o ON o.id=u.id LEFT JOIN choferes ch ON ch.id=u.id LEFT JOIN recolectores re ON re.id=u.id WHERE u.activo=1 ORDER BY u.nombre ASC");
         return $stmt->fetchAll();
     }
 
@@ -115,6 +115,82 @@ class Usuario
     public function ultimoId(): int
     {
         return $this->idCreado;
+    }
+
+    /* ---------- Penalizaciones por reportes falsos ---------- */
+
+    /** Horas de penalización según el nivel alcanzado; desde el nivel 3 es permanente. */
+    public const HORAS_PENALIZACION = [1 => 24, 2 => 72];
+    public const NIVEL_BANEO_PERMANENTE = 3;
+    public const HORAS_MAXIMAS_PENALIZACION = 8760;
+
+    /**
+     * Suma un reporte falso al usuario y aplica la penalización del nivel
+     * alcanzado. Debe llamarse dentro de una transacción (FOR UPDATE).
+     * Devuelve ['nivel' => int, 'permanente' => bool, 'horas' => ?int].
+     */
+    public function penalizar(int $id): array
+    {
+        $q = $this->pdo->prepare('SELECT penalizaciones FROM usuarios WHERE id=? FOR UPDATE');
+        $q->execute([$id]);
+        $nivel = (int) $q->fetchColumn() + 1;
+        $permanente = $nivel >= self::NIVEL_BANEO_PERMANENTE;
+        if ($permanente) {
+            $this->pdo->prepare('UPDATE usuarios SET penalizaciones=?, penalizado_desde=CURRENT_TIMESTAMP, penalizado_hasta=NULL, baneo_permanente=1 WHERE id=?')->execute([$nivel, $id]);
+            return ['nivel' => $nivel, 'permanente' => true, 'horas' => null];
+        }
+        $horas = self::HORAS_PENALIZACION[$nivel];
+        $this->pdo->prepare('UPDATE usuarios SET penalizaciones=?, penalizado_desde=CURRENT_TIMESTAMP, penalizado_hasta=DATE_ADD(CURRENT_TIMESTAMP, INTERVAL ? HOUR), baneo_permanente=0 WHERE id=?')->execute([$nivel, $horas, $id]);
+        return ['nivel' => $nivel, 'permanente' => false, 'horas' => $horas];
+    }
+
+    /** Estado de penalización vigente de un usuario (el reloj es el de la base de datos). */
+    public function estadoPenalizacion(int $id): array
+    {
+        $q = $this->pdo->prepare(
+            'SELECT penalizaciones, baneo_permanente,
+                    COALESCE(baneo_permanente=1 OR penalizado_hasta>CURRENT_TIMESTAMP, 0) AS activa,
+                    GREATEST(COALESCE(TIMESTAMPDIFF(MINUTE, CURRENT_TIMESTAMP, penalizado_hasta), 0), 0) AS minutos_restantes
+             FROM usuarios WHERE id=?'
+        );
+        $q->execute([$id]);
+        $f = $q->fetch();
+        if (!$f) return ['existe' => false, 'activa' => false, 'permanente' => false, 'nivel' => 0, 'minutos_restantes' => 0];
+        return [
+            'existe' => true,
+            'activa' => (bool) $f['activa'],
+            'permanente' => (bool) $f['baneo_permanente'],
+            'nivel' => (int) $f['penalizaciones'],
+            'minutos_restantes' => (int) $f['minutos_restantes'],
+        ];
+    }
+
+    /** Usuarios con una penalización vigente (temporal o permanente), para el administrador. */
+    public function listarPenalizados(): array
+    {
+        $q = $this->pdo->query(
+            'SELECT id, nombre, email, cedula, rol, penalizaciones, baneo_permanente, penalizado_desde, penalizado_hasta,
+                    TIMESTAMPDIFF(HOUR, penalizado_desde, CURRENT_TIMESTAMP) AS horas_penalizado,
+                    GREATEST(COALESCE(TIMESTAMPDIFF(MINUTE, CURRENT_TIMESTAMP, penalizado_hasta), 0), 0) AS minutos_restantes
+             FROM usuarios
+             WHERE activo=1 AND (baneo_permanente=1 OR penalizado_hasta>CURRENT_TIMESTAMP)
+             ORDER BY baneo_permanente DESC, penalizaciones DESC, nombre ASC'
+        );
+        return $q->fetchAll();
+    }
+
+    /**
+     * Fija una nueva duración de penalización contada desde ahora.
+     * 0 horas levanta la penalización por completo. El contador de
+     * reportes falsos (penalizaciones) se conserva como historial.
+     */
+    public function despenalizar(int $id, int $horas): void
+    {
+        if ($horas === 0) {
+            $this->pdo->prepare('UPDATE usuarios SET penalizado_desde=NULL, penalizado_hasta=NULL, baneo_permanente=0 WHERE id=?')->execute([$id]);
+            return;
+        }
+        $this->pdo->prepare('UPDATE usuarios SET penalizado_desde=CURRENT_TIMESTAMP, penalizado_hasta=DATE_ADD(CURRENT_TIMESTAMP, INTERVAL ? HOUR), baneo_permanente=0 WHERE id=?')->execute([$horas, $id]);
     }
 
     public function verificarIntentos(string $email): void

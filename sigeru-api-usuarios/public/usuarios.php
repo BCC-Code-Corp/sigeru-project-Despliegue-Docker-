@@ -16,11 +16,11 @@
  * usa en modo lectura (GET ?email=) para completar el perfil tras el login.
  */
 
-require_once __DIR__ . '/../app/config/conexion.php';
-require_once __DIR__ . '/../app/core/Respuesta.php';
-require_once __DIR__ . '/../app/controllers/UsuarioController.php';
+require_once __DIR__ . '/../../config/conexion.php';
+require_once __DIR__ . '/../../core/Respuesta.php';
+require_once __DIR__ . '/../../controllers/UsuarioController.php';
 
-require_once __DIR__ . '/../app/core/Sesion.php';
+require_once __DIR__ . '/../../core/Sesion.php';
 
 try {
     Sesion::proteger($pdo, 'usuarios');

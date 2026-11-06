@@ -9,6 +9,18 @@ final class Validacion
     }
     public const PASSWORD_MENSAJE = 'La contraseña debe tener entre 8 y 72 caracteres, mayúscula, minúscula, número y símbolo.';
 
+    /** Valida latitud/longitud elegidas en el mapa. Devuelve el mensaje de error o null. */
+    public static function coordenadas(array $datos, bool $obligatorias): ?string
+    {
+        $lat = $datos['latitud'] ?? null;
+        $lon = $datos['longitud'] ?? null;
+        $vacio = fn($v) => $v === null || $v === '';
+        if ($vacio($lat) && $vacio($lon)) return $obligatorias ? 'Elegí la ubicación haciendo clic en el mapa.' : null;
+        if ($vacio($lat) || $vacio($lon)) return 'Latitud y longitud deben informarse juntas.';
+        if (!is_numeric($lat) || !is_numeric($lon) || abs((float)$lat) > 90 || abs((float)$lon) > 180) return 'Coordenadas inválidas.';
+        return null;
+    }
+
     public static function entrada(string $recurso, array $datos): void
     {
         $maximos = [
@@ -27,7 +39,8 @@ final class Validacion
             'lic_conducir' => 100,
             'especialidad' => 100,
             'descripcion' => 5000,
-            'solucion' => 5000
+            'solucion' => 5000,
+            'motivo_reporte' => 500
         ];
         foreach ($datos as $campo => $valor) {
             if ($valor === null) continue;

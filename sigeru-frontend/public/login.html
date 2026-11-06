@@ -4,20 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión - SiGeRU</title>
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="icon" type="image/svg+xml" href="../assets/LogoSiGeRU.svg" />
+    <link rel="stylesheet" href="style.css?v=9">
 </head>
 <body class="cuerpo-formulario">
 
     <div class="contenedor-formulario">
         <div class="cabecera-formulario">
-            <div class="logo-reciclaje" aria-hidden="true">♻️</div>
+            <img src="../assets/LogoSiGeRU.svg" alt="SiGeRU" class="logo-sigeru-form" />
             <h2>Iniciar Sesión</h2>
             <p>Accede al panel de control de SiGeRU</p>
-            <div class="usuarios-prueba" role="note">
-                <strong>Usuarios de prueba</strong>
-                <span>Vecino: vecino@sigeru.uy | Contraseña: vecino123</span>
-                <span>Administrador: admin@sigeru.uy | Contraseña: admin123</span>
-            </div>
+            <details class="usuarios-prueba">
+                <summary>Usuarios de prueba</summary>
+                <div class="usuarios-prueba-lista">
+                    <div class="usuario-prueba"><b>Vecino</b><span>Correo: <code>vecino@sigeru.uy</code></span><span>Contraseña: <code>vecino123</code></span></div>
+                    <div class="usuario-prueba"><b>Administrador</b><span>Correo: <code>admin@sigeru.uy</code></span><span>Contraseña: <code>admin123</code></span></div>
+                    <div class="usuario-prueba"><b>Cuadrilla</b><span>Correo: <code>cuadrilla@sigeru.uy</code></span><span>Contraseña: <code>cuadrilla123</code></span></div>
+                    <div class="usuario-prueba"><b>Operario</b><span>Correo: <code>operario@sigeru.uy</code></span><span>Contraseña: <code>operario123</code></span></div>
+                </div>
+            </details>
         </div>
 
         <p id="aviso-registro" role="status"></p>

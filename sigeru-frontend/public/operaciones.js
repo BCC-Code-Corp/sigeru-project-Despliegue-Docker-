@@ -62,7 +62,6 @@ export function instalarOperaciones({
     ubicacion: "Ubicación",
     usuario_id: "Usuario",
     chofer_id: "Chofer",
-    modelo: "Modelo",
     lic_conducir: "Licencia de conducir",
     especialidad: "Especialidad",
   };
@@ -79,12 +78,7 @@ export function instalarOperaciones({
     chofer_id: "usuarios",
   };
   const configs = {
-    cuadrillas: ["Cuadrillas", ["nombre", "disponibilidad"]],
     rutas: ["Rutas", ["nombre", "zona", "frecuencia", "horario"]],
-    asignaciones: [
-      "Calendario de rutas",
-      ["ruta_id", "cuadrilla_id", "matricula", "fecha"],
-    ],
     recolecciones: [
       "Recolecciones",
       [
@@ -105,7 +99,6 @@ export function instalarOperaciones({
       "Reparaciones de contenedores",
       ["incidencia_id", "tipo_reparacion", "fecha_inicio", "fecha_fin"],
     ],
-    residuos: ["Tipos de residuos", ["tipo_residuo"]],
     maquinaria: ["Maquinaria", ["nombre", "estado", "centro_id"]],
     recepciones: [
       "Recepción de residuos",
@@ -116,7 +109,7 @@ export function instalarOperaciones({
       ["incidencia_id", "descripcion", "ubicacion", "prioridad"],
     ],
   };
-  const opcionales = ["volumen", "prox_man", "fecha_fin"];
+  const opcionales = ["volumen", "prox_man", "fecha_fin", "lic_conducir"];
 
   function tabla(rows) {
     if (!rows.length) return "<p>No hay registros.</p>";
@@ -153,13 +146,23 @@ export function instalarOperaciones({
         }
         if (campo === "recolector_id")
           rows = rows.filter((r) => r.rol === "recolector");
-        if (campo === "chofer_id")
-          rows = rows.filter((r) => r.rol === "chofer");
+        if (campo === "chofer_id") {
+          // Solo choferes disponibles: los que todavía no tienen un camión asignado.
+          const rc = await apiFetch(endpoints.camiones);
+          const ocupados = new Set(
+            (rc.data || []).map((c) => String(c.chofer_id)).filter((x) => x !== "null"),
+          );
+          rows = rows.filter(
+            (r) => r.rol === "chofer" && !ocupados.has(String(r.id)),
+          );
+        }
         opciones = rows.map((r) => [
           campo === "matricula" ? r.matricula : r.id,
           `${r.id || ""} ${r.nombre || r.ubicacion || r.matricula || r.tipo_residuo || ""}`,
         ]);
       }
+      if (opciones && !opciones.length)
+        opciones = [["", "No hay opciones disponibles"]];
       if (["simulado", "disponibilidad"].includes(campo))
         opciones = [
           ["0", "No"],
@@ -186,7 +189,6 @@ export function instalarOperaciones({
           ubicacion: 255,
           tipo_man: 100,
           tipo_reparacion: 100,
-          modelo: 100,
           lic_conducir: 100,
         }[campo] || 100;
       const input = opciones
@@ -357,19 +359,12 @@ export function instalarOperaciones({
     };
     contenedor.append(a);
   }
-  menu("grupo-equipos-admin", "Cuadrillas", () => mostrar("cuadrillas"));
-  menu("grupo-equipos-admin", "Integrantes de cuadrillas", () =>
-    relacion("miembro", ["usuario_id", "cuadrilla_id"], "Asignar integrante"),
-  );
   menu("grupo-equipos-admin", "Choferes y camiones", () =>
     relacion(
       "chofer",
-      ["chofer_id", "matricula", "modelo", "lic_conducir"],
+      ["chofer_id", "matricula", "lic_conducir"],
       "Asignar chofer",
     ),
-  );
-  menu("grupo-rutas-admin", "Calendario de rutas", () =>
-    mostrar("asignaciones"),
   );
   menu("grupo-contenedores-admin", "Contenedores de rutas", () =>
     relacion(
@@ -439,7 +434,7 @@ export function instalarOperaciones({
   });
   vincularMenu("menu-informe-incidencias", async () => {
     espacio.innerHTML =
-      '<div class="seccion-bloque"><h3>Informe de incidencias</h3><p class="descripcion">Listado de incidencias según su estado.</p><label for="filtro-informe">Estado </label><select id="filtro-informe" class="campo-entrada"><option value="abierta">Abiertas</option><option value="en curso">En curso</option><option value="cerrada">Cerradas</option><option value="">Todas</option></select><p id="resumen-informe" role="status"></p><div id="informe-incidencias"></div></div>';
+      '<div class="seccion-bloque"><h3>Informe de incidencias</h3><p class="descripcion">Listado de incidencias según su estado.</p><label for="filtro-informe">Estado </label><select id="filtro-informe" class="campo-entrada"><option value="abierta">Abiertas</option><option value="en curso">En curso</option><option value="cerrada">Cerradas</option><option value="reportada">Reportadas (falsas)</option><option value="">Todas</option></select><p id="resumen-informe" role="status"></p><div id="informe-incidencias"></div></div>';
     const r = await apiFetch(endpoints.incidencias);
     const salida = document.getElementById("informe-incidencias");
     if (r.status !== "success") {
@@ -450,7 +445,7 @@ export function instalarOperaciones({
     const cantidad = (estado) =>
       todas.filter((i) => i.estado_incidencia === estado).length;
     document.getElementById("resumen-informe").textContent =
-      `Abiertas: ${cantidad("abierta")} · En curso: ${cantidad("en curso")} · Cerradas: ${cantidad("cerrada")} · Total: ${todas.length}`;
+      `Abiertas: ${cantidad("abierta")} · En curso: ${cantidad("en curso")} · Cerradas: ${cantidad("cerrada")} · Reportadas: ${cantidad("reportada")} · Total: ${todas.length}`;
     const filtro = document.getElementById("filtro-informe");
     const mostrarInforme = () =>
       (salida.innerHTML = tabla(

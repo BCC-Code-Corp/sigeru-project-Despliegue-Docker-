@@ -49,7 +49,7 @@ class Incidencia
 
     public function contarActivasPorUsuario(int $usuarioId): int
     {
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM incidencias WHERE usuario_id = ? AND estado_incidencia <> 'cerrada'");
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM incidencias WHERE usuario_id = ? AND estado_incidencia NOT IN ('cerrada', 'reportada')");
         $stmt->execute([$usuarioId]);
         return (int) $stmt->fetchColumn();
     }
@@ -110,6 +110,31 @@ class Incidencia
         $q = $this->pdo->prepare('SELECT * FROM incidencias WHERE cuadrilla_id=? ORDER BY id DESC');
         $q->execute([$id]);
         return $q->fetchAll();
+    }
+
+    /** La Cuadrilla marca la incidencia como reporte falso: queda "reportada" con su motivo. */
+    public function reportar(int $id, string $motivo, int $autor): bool
+    {
+        $stmt = $this->pdo->prepare("UPDATE incidencias SET estado_incidencia = 'reportada', motivo_reporte = ?, reportada_por = ?, fecha_reporte = CURRENT_TIMESTAMP WHERE id = ?");
+        return $stmt->execute([$motivo, $autor, $id]);
+    }
+
+    /** Incidencias reportadas como falsas, con el vecino y la cuadrilla involucrados (sección del administrador). */
+    public function listarReportadas(): array
+    {
+        $stmt = $this->pdo->query(
+            "SELECT i.id, i.ubicacion, i.estado_contenedor, i.tipo_basura, i.descripcion, i.motivo_reporte, i.fecha_reporte,
+                    i.cuadrilla_id, c.nombre AS cuadrilla_nombre, i.matricula_camion,
+                    v.id AS vecino_id, v.nombre AS vecino_nombre, v.email AS vecino_email, v.cedula AS vecino_cedula,
+                    v.penalizaciones AS vecino_penalizaciones, r.nombre AS reportada_por_nombre
+             FROM incidencias i
+             LEFT JOIN usuarios v ON v.id = i.usuario_id
+             LEFT JOIN usuarios r ON r.id = i.reportada_por
+             LEFT JOIN cuadrillas c ON c.id = i.cuadrilla_id
+             WHERE i.estado_incidencia = 'reportada'
+             ORDER BY i.fecha_reporte DESC, i.id DESC"
+        );
+        return $stmt->fetchAll();
     }
 
     public function cerrarReclamos(int $id): void

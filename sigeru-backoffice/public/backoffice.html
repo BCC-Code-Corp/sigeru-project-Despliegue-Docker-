@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Back Office</title>
-    <link rel="stylesheet" href="style.css?v=2" />
+    <link rel="icon" type="image/svg+xml" href="../assets/LogoSiGeRU.svg" />
+    <link rel="stylesheet" href="style.css?v=9" />
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -356,7 +357,7 @@
       }
 
     </style>
-    <link rel="stylesheet" href="panel.css?v=9" />
+    <link rel="stylesheet" href="panel.css?v=12" />
   </head>
 
   <body class="cuerpo-panel backoffice">
@@ -458,6 +459,34 @@
               <a href="#" id="menu-gestionar-usuarios" class="item-menu"
                 >Gestionar usuarios</a
               >
+              <a href="#" id="menu-usuarios-penalizados" class="item-menu"
+                >Usuarios penalizados</a
+              >
+            </div>
+          </details>
+          <details class="menu-grupo-admin">
+            <summary>Incidencias</summary>
+            <div class="menu-subgrupo" id="grupo-incidencias-admin">
+            <a href="#" id="menu-gestionar-incidencias" class="item-menu"
+              >Incidencias</a
+            >
+            <a href="#" id="menu-incidencias-reportadas" class="item-menu"
+              >Incidencias reportadas</a
+            >
+            <a href="#" id="menu-informe-incidencias" class="item-menu"
+              >Informe de Incidencias</a
+            >
+            </div>
+          </details>
+          <details class="menu-grupo-admin">
+            <summary>Rutas y calendario</summary>
+            <div class="menu-subgrupo" id="grupo-rutas-admin">
+              <a href="#" id="menu-gestionar-rutas" class="item-menu"
+                >Rutas y calendario</a
+              >
+              <a href="#" id="menu-asignar-rutas" class="item-menu"
+                >Asignar rutas</a
+              >
             </div>
           </details>
           <details class="menu-grupo-admin">
@@ -471,25 +500,14 @@
           <details class="menu-grupo-admin">
             <summary>Equipos y Flota</summary>
             <div class="menu-subgrupo" id="grupo-equipos-admin">
+              <a href="#" id="menu-cuadrillas-equipos" class="item-menu"
+                >Cuadrillas</a
+              >
               <a href="#" id="menu-gestionar-camiones" class="item-menu"
                 >Camiones y asignaciones</a
               >
             </div>
           </details>
-          <details class="menu-grupo-admin">
-            <summary>Rutas y calendario</summary>
-            <div class="menu-subgrupo" id="grupo-rutas-admin">
-              <a href="#" id="menu-gestionar-rutas" class="item-menu"
-                >Rutas y calendario</a
-              >
-            </div>
-          </details>
-          <a href="#" id="menu-gestionar-incidencias" class="item-menu"
-            >Incidencias</a
-          >
-          <a href="#" id="menu-informe-incidencias" class="item-menu"
-            >Informe de Incidencias</a
-          >
           <details class="menu-grupo-admin">
             <summary>Centros de Acopio y Vertederos</summary>
             <div class="menu-subgrupo" id="grupo-centros-admin">
@@ -515,9 +533,7 @@
     <main class="contenido-panel">
       <header class="barra-superior-panel">
         <button type="button" id="toggle-sidebar" class="btn-toggle" aria-controls="sidebar" aria-expanded="false">☰ Menú</button>
-        <div style="font-weight: bold; color: var(--color4); font-size: 1.2rem">
-          ♻️ SiGeRU
-        </div>
+        <img src="../assets/LogoSiGeRU.svg" alt="SiGeRU" class="logo-sigeru-panel" />
       </header>
 
       <nav
@@ -538,7 +554,7 @@
         >
       </nav>
 
-      <section style="padding: 25px 25px 0 25px">
+      <section id="bloque-bienvenida" style="padding: 25px 25px 0 25px">
         <h1 id="texto-bienvenida" style="margin: 0; color: var(--color4)">
           ¡Bienvenido!
         </h1>
@@ -571,12 +587,14 @@
 
     <script type="module">
       import { idioma } from "./config.js";
-      import { confirmarOperacion } from "./confirmaciones.js?v=4";
+      import { confirmarOperacion, solicitarDatos } from "./confirmaciones.js?v=6";
+      import { montarListaEstados, etiquetaEstadoCuadrilla } from "./estado-cuadrilla.js?v=1";
       import {
         validarPassword,
         validarCedula,
         mensajePassword,
-      } from "./validacion.js";
+        validarHorasPenalizacion,
+      } from "./validacion.js?v=2";
       document.documentElement.lang = idioma;
       // ==================================================
       //  ESTADO / SESIÓN
@@ -746,12 +764,27 @@
 
 
       // ---------- 1. INICIO / DASHBOARD ----------
+      // La bienvenida ("¡Bienvenido, nombre!") solo se muestra en el inicio.
+      function mostrarBienvenida(visible) {
+        document.getElementById("bloque-bienvenida").hidden = !visible;
+      }
+      document.addEventListener("click", function (e) {
+        const enlace = e.target.closest("a.item-menu");
+        if (enlace) mostrarBienvenida(enlace.id === "menu-dashboard");
+      });
+
       function renderDashboard() {
+        mostrarBienvenida(true);
         espacio.innerHTML = `
                 <div class="seccion-bloque">
                     <h3>Backoffice de administración</h3>
                     <p class="descripcion">Resumen general de SiGeRU.</p>
                     <div id="dash-contenido" class="grid-stats"><p style="color:#64748b;">Cargando estadísticas...</p></div>
+                </div>
+                <div class="seccion-bloque">
+                    <h3>Estado de las cuadrillas</h3>
+                    <p class="descripcion">Qué está haciendo cada cuadrilla en este momento (se actualiza solo).</p>
+                    <div id="lista-estado-cuadrillas"></div>
                 </div>
                 <div class="seccion-bloque">
                     <h3>Contenedores más desbordados del mes</h3>
@@ -762,6 +795,7 @@
             `;
 
         const cont = document.getElementById("dash-contenido");
+        montarListaEstados(document.getElementById("lista-estado-cuadrillas"), apiFetch);
 
         function tarjeta(valor, label) {
           return `<div class="stat-card"><div class="stat-valor">${valor}</div><div class="stat-label">${label}</div></div>`;
@@ -1243,6 +1277,7 @@
         const e = (estado || "").toLowerCase();
         if (e === "cerrada") return "#16a34a";
         if (e === "en curso") return "#eab308";
+        if (e === "reportada") return "#6b7280";
         return "#dc2626";
       }
 
@@ -1286,12 +1321,14 @@
                 texto: c.ubicacion,
                 lat: coordenadasGuardadas(c)?.lat,
                 lon: coordenadasGuardadas(c)?.lon,
-                popup: `🗑️ Contenedor #${escaparHtml(c.id)}<br>Estado: ${escaparHtml(c.estado)}${Number(c.datos_prueba) === 1 ? "<br>Ubicación IM · estado simulado para pruebas" : ""}`,
+                popup: `🗑️ Contenedor #${escaparHtml(c.id)}<br>Estado: ${escaparHtml(c.estado)}${Number(c.datos_prueba) === 1 ? (String(c.fuente || "").includes("datos-abiertos") ? "<br>Ubicación IM · estado simulado para pruebas" : "<br>Ubicación y estado simulados") : ""}`,
               });
             });
             centros.forEach(function (c) {
               puntos.push({
                 texto: c.ubicacion,
+                lat: coordenadasGuardadas(c)?.lat,
+                lon: coordenadasGuardadas(c)?.lon,
                 popup: `♻️ ${escaparHtml(c.nombre)}<br>Estado: ${escaparHtml(c.estado)}`,
               });
             });
@@ -1388,6 +1425,105 @@
         return null;
       }
 
+      // Mapa para elegir la ubicación exacta de un contenedor o de un centro:
+      // muestra los contenedores en servicio y los centros ya cargados, y el
+      // clic fija el punto (y completa la dirección si el campo está vacío).
+      function montarSelectorUbicacion() {
+        const campo = document.getElementById("crud-ubicacion");
+        const estado = document.getElementById("crud-mapa-estado");
+        const mapa = L.map("crud-mapa").setView([-34.9011, -56.1645], 12);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: "&copy; OpenStreetMap contributors",
+        }).addTo(mapa);
+        let pin = null;
+        let punto = null;
+        let direccionAutomatica = true;
+        campo.addEventListener("input", function () {
+          direccionAutomatica = false;
+        });
+
+        function colocar(lat, lon, centrar) {
+          punto = { lat: Number(lat.toFixed(7)), lon: Number(lon.toFixed(7)) };
+          if (pin) pin.setLatLng([lat, lon]);
+          else pin = L.marker([lat, lon]).addTo(mapa);
+          if (centrar) mapa.setView([lat, lon], Math.max(mapa.getZoom(), 16));
+          estado.textContent = `Punto elegido: ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+        }
+
+        function completarDireccion(lat, lon) {
+          if (!direccionAutomatica && campo.value.trim() !== "") return;
+          fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&zoom=18&lat=${lat}&lon=${lon}`,
+          )
+            .then((r) => r.json())
+            .then(function (d) {
+              const a = (d && d.address) || {};
+              const calle = [a.road, a.house_number].filter(Boolean).join(" ");
+              const texto = [calle, a.suburb || a.neighbourhood, a.city || a.town]
+                .filter(Boolean)
+                .join(", ");
+              if (texto.length >= 5) campo.value = texto.slice(0, 255);
+              else throw new Error("sin dirección");
+            })
+            .catch(function () {
+              if (campo.value.trim() === "")
+                campo.value = `Punto en el mapa (${lat.toFixed(5)}, ${lon.toFixed(5)})`;
+            });
+        }
+
+        mapa.on("click", function (ev) {
+          colocar(ev.latlng.lat, ev.latlng.lng, false);
+          completarDireccion(ev.latlng.lat, ev.latlng.lng);
+        });
+
+        Promise.all([
+          apiFetch("../Backend/api/gestion/contenedores.php"),
+          apiFetch("../Backend/api/gestion/centros_acopio.php"),
+        ]).then(function (res) {
+          (res[0].data || []).forEach(function (c) {
+            const g = coordenadasGuardadas(c);
+            if (!g || Number(c.en_servicio) !== 1) return;
+            L.circleMarker([g.lat, g.lon], {
+              radius: 6,
+              color: "#1d4ed8",
+              fillColor: "#3b82f6",
+              fillOpacity: 0.85,
+              bubblingMouseEvents: false,
+            })
+              .addTo(mapa)
+              .bindPopup(`🗑️ Contenedor #${escaparHtml(c.id)}<br>${escaparHtml(c.ubicacion)}`);
+          });
+          (res[1].data || []).forEach(function (c) {
+            const g = coordenadasGuardadas(c);
+            if (!g) return;
+            L.circleMarker([g.lat, g.lon], {
+              radius: 9,
+              color: "#166534",
+              fillColor: "#22c55e",
+              fillOpacity: 0.9,
+              bubblingMouseEvents: false,
+            })
+              .addTo(mapa)
+              .bindPopup(`♻️ ${escaparHtml(c.nombre)}<br>${escaparHtml(c.ubicacion)}`);
+          });
+        });
+
+        return {
+          obtener: () => punto,
+          colocar: colocar,
+          fijarTextoManual: function () {
+            direccionAutomatica = false;
+          },
+          limpiar: function () {
+            if (pin) mapa.removeLayer(pin);
+            pin = null;
+            punto = null;
+            direccionAutomatica = true;
+            estado.textContent = "Hacé clic en el mapa para marcar la ubicación.";
+          },
+        };
+      }
+
      function renderizarCrud(cfg) {
         const camposHtml = cfg.campos
           .map(function (c) {
@@ -1404,10 +1540,21 @@
                         <select id="crud-${escaparHtml(c.name)}" class="campo-entrada">${opciones}</select>
                     </div>`;
             }
+            const mapaHtml =
+              cfg.mapa && c.name === "ubicacion"
+                ? `<div>
+                    <label style="font-weight:bold; font-size:0.85rem;">Elegí el punto exacto en el mapa:</label>
+                    <div id="crud-mapa" class="mapa-lienzo" style="height:340px; margin-top:6px;"></div>
+                    <div style="display:flex; gap:14px; flex-wrap:wrap; margin-top:6px; font-size:0.8rem; color:#374151;">
+                        <span>🔵 Contenedores en servicio</span><span>🟢 Centros y vertederos</span><span>📍 Punto elegido</span>
+                    </div>
+                    <p id="crud-mapa-estado" role="status" style="margin:6px 0 0; font-size:0.85rem; color:#64748b;">Hacé clic en el mapa para marcar la ubicación.</p>
+                </div>`
+                : "";
             return `<div>
                     <label style="font-weight:bold; font-size:0.85rem;">${escaparHtml(c.label)}:</label>
                     <input type="${c.tipo || "text"}" id="crud-${escaparHtml(c.name)}" class="campo-entrada" placeholder="${c.placeholder || ""}" ${esRequerido ? "required" : ""} ${c.minLength ? `minlength="${c.minLength}"` : ""}>
-                </div>`;
+                </div>${mapaHtml}`;
           })
           .join("");
 
@@ -1441,6 +1588,7 @@
 
         let idEnEdicion = null;
         const errorDiv = document.getElementById("crud-form-error");
+        const selector = cfg.mapa ? montarSelectorUbicacion() : null;
 
         function actualizarDatosOperario() {
           if (cfg !== crudUsuarios) return;
@@ -1497,6 +1645,7 @@
             const el = document.getElementById("crud-" + c.name);
             if (el && c.soloCreacion) el.removeAttribute("readonly");
           });
+          if (selector) selector.limpiar();
         }
 
         function cargarListado() {
@@ -1546,6 +1695,12 @@
                     el.value = fila[c.name] ?? "";
                     if (c.soloCreacion) el.setAttribute("readonly", "readonly");
                   });
+                  if (selector) {
+                    const g = coordenadasGuardadas(fila);
+                    if (g) selector.colocar(g.lat, g.lon, true);
+                    else selector.limpiar();
+                    selector.fijarTextoManual();
+                  }
                   if (cfg === crudUsuarios) {
                     document.getElementById("crud-centro_id").value =
                       fila.centro_id || "";
@@ -1618,6 +1773,15 @@
                 errores.push("El operario debe tener un centro asignado.");
               if (!datos.especialidad)
                 errores.push("La especialidad del operario es obligatoria.");
+            }
+
+            if (selector) {
+              const punto = selector.obtener();
+              if (!punto) errores.push("Elegí la ubicación haciendo clic en el mapa.");
+              else {
+                datos.latitud = punto.lat;
+                datos.longitud = punto.lon;
+              }
             }
 
             // Validación de Frontend: si algo no cumple las reglas, ni
@@ -1782,12 +1946,14 @@
 
       const crudContenedores = {
         titulo: "Contenedores en servicio y repuestos",
+        mapa: true,
         endpoint: "../Backend/api/gestion/contenedores.php",
         idParam: "id",
         campos: [
           {
             name: "ubicacion",
             label: "Ubicación",
+            placeholder: "Se completa al hacer clic en el mapa",
             tipo: "text",
             minLength: 5,
             maxLength: 255,
@@ -1821,6 +1987,7 @@
 
       const crudCentrosAcopio = {
         titulo: "Centros de Acopio y Vertederos",
+        mapa: true,
         endpoint: "../Backend/api/gestion/centros_acopio.php",
         idParam: "id",
         campos: [
@@ -1834,6 +2001,7 @@
           {
             name: "ubicacion",
             label: "Ubicación",
+            placeholder: "Se completa al hacer clic en el mapa",
             tipo: "text",
             minLength: 5,
             maxLength: 255,
@@ -2057,12 +2225,338 @@
       }
       vincularMenu("menu-gestionar-camiones", renderGestionCamiones);
 
+      // ==================================================
+      //  CUADRILLAS (vista guiada): crear → sumar integrantes → asignar camión
+      // ==================================================
+      const API_CUADRILLAS = "../Backend/api/recoleccion/cuadrillas.php";
+      const API_CAMIONES = "../Backend/api/recoleccion/camiones.php";
+      const API_RELACIONES = "../Backend/api/gestion/relaciones.php";
+      const API_USUARIOS = "../Backend/api/usuarios/usuarios.php";
+
+      function opcionesSelect(lista, valor, texto, vacio) {
+        if (!lista.length)
+          return `<option value="">${escaparHtml(vacio)}</option>`;
+        return (
+          `<option value="">Elegí una opción…</option>` +
+          lista
+            .map(function (x) {
+              return `<option value="${escaparHtml(valor(x))}">${escaparHtml(texto(x))}</option>`;
+            })
+            .join("")
+        );
+      }
+
+      function renderCuadrillasEquipos() {
+        espacio.innerHTML = `
+                <div class="seccion-bloque">
+                    <h3>Cuadrillas</h3>
+                    <p class="descripcion"><strong>1.</strong> Creá la cuadrilla. <strong>2.</strong> Sumale choferes y recolectores. <strong>3.</strong> Asignale un camión disponible. Después asignala a una ruta desde "Asignar rutas".</p>
+                    <form id="form-nueva-cuadrilla" class="acciones-fila" style="align-items:center">
+                        <input id="nombre-nueva-cuadrilla" class="campo-entrada" type="text" required minlength="3" maxlength="100" placeholder="Nombre de la nueva cuadrilla" aria-label="Nombre de la nueva cuadrilla" style="max-width:320px">
+                        <button type="submit" class="btn-mini">Crear cuadrilla</button>
+                    </form>
+                    <p id="cuadrillas-estado" role="status" style="min-height:1.4em"></p>
+                </div>
+                <div id="cuadrillas-lista" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(min(310px,100%),1fr)); gap:16px; margin-top:16px">Cargando...</div>
+            `;
+        const estado = document.getElementById("cuadrillas-estado");
+        const avisar = function (data, errorGenerico) {
+          estado.style.color = data && data.status === "success" ? "#166534" : "#a63232";
+          estado.textContent = data && data.message ? data.message : errorGenerico;
+        };
+
+        document
+          .getElementById("form-nueva-cuadrilla")
+          .addEventListener("submit", function (ev) {
+            ev.preventDefault();
+            const campo = document.getElementById("nombre-nueva-cuadrilla");
+            const nombre = campo.value.trim();
+            if (nombre.length < 3) {
+              avisar(null, "El nombre debe tener al menos 3 caracteres.");
+              return;
+            }
+            apiFetch(API_CUADRILLAS, {
+              method: "POST",
+              body: JSON.stringify({ nombre: nombre, disponibilidad: "1" }),
+            })
+              .then(function (data) {
+                avisar(data, "No se pudo crear la cuadrilla.");
+                if (data.status === "success") {
+                  campo.value = "";
+                  cargarCuadrillas();
+                }
+              })
+              .catch(function () {
+                avisar(null, "No se pudo crear la cuadrilla.");
+              });
+          });
+
+        // Ejecuta una acción sobre una cuadrilla, muestra el resultado y recarga.
+        function accionar(url, opciones, errorGenerico) {
+          apiFetch(url, opciones)
+            .then(function (data) {
+              avisar(data, errorGenerico);
+              if (data.status !== "cancelled") cargarCuadrillas();
+            })
+            .catch(function () {
+              avisar(null, errorGenerico);
+            });
+        }
+
+        function cargarCuadrillas() {
+          Promise.all([
+            apiFetch(API_CUADRILLAS),
+            apiFetch(API_USUARIOS),
+            apiFetch(API_CAMIONES),
+          ])
+            .then(function (res) {
+              const lista = document.getElementById("cuadrillas-lista");
+              if (!lista) return;
+              if (res.some(function (r) { return r.status !== "success"; })) {
+                lista.innerHTML = "<p style='color:red;'>Error al cargar las cuadrillas.</p>";
+                return;
+              }
+              const cuadrillas = res[0].data || [];
+              const usuarios = res[1].data || [];
+              const camiones = res[2].data || [];
+              if (!cuadrillas.length) {
+                lista.innerHTML = "<p style='color:#64748b;'>Todavía no hay cuadrillas. Creá la primera con el formulario de arriba.</p>";
+                return;
+              }
+              const libres = function (rol) {
+                return usuarios.filter(function (u) {
+                  return u.rol === rol && !u.cuadrilla_id;
+                });
+              };
+              const camionesLibres = camiones.filter(function (c) {
+                return !c.cuadrilla_id && c.estado === "Disponible";
+              });
+
+              lista.innerHTML = cuadrillas
+                .map(function (c) {
+                  const cid = String(c.id);
+                  const camion = camiones.find(function (x) {
+                    return String(x.cuadrilla_id) === cid;
+                  });
+                  const integrantes = function (rol, titulo, vacio) {
+                    const miembros = usuarios.filter(function (u) {
+                      return u.rol === rol && String(u.cuadrilla_id) === cid;
+                    });
+                    return `
+                      <div style="margin-top:12px">
+                        <strong>${titulo}</strong>
+                        ${
+                          miembros.length
+                            ? `<ul style="list-style:none; padding:0; margin:6px 0">${miembros
+                                .map(function (u) {
+                                  return `<li style="display:flex; justify-content:space-between; align-items:center; gap:8px; padding:4px 0; border-bottom:1px solid #eef2ea"><span>${escaparHtml(u.nombre)}</span><button type="button" class="btn-mini boton-peligro" data-accion="quitar" data-usuario="${escaparHtml(u.id)}" style="padding:4px 10px">Quitar</button></li>`;
+                                })
+                                .join("")}</ul>`
+                            : `<p style="color:#94a3b8; margin:6px 0">${vacio}</p>`
+                        }
+                        <div class="acciones-fila" style="align-items:center">
+                          <select class="campo-entrada" data-select="${rol}" aria-label="Agregar ${titulo.toLowerCase()} a ${escaparHtml(c.nombre)}" style="flex:1; min-width:150px">${opcionesSelect(libres(rol), function (u) { return u.id; }, function (u) { return u.nombre; }, "No hay " + titulo.toLowerCase() + " sin cuadrilla")}</select>
+                          <button type="button" class="btn-mini" data-accion="agregar" data-rol="${rol}">Agregar</button>
+                        </div>
+                      </div>`;
+                  };
+                  const disponible = Number(c.disponibilidad) === 1;
+                  return `
+                    <article class="seccion-bloque" data-cuadrilla="${escaparHtml(c.id)}" data-nombre="${escaparHtml(c.nombre)}" data-disponible="${disponible ? 1 : 0}" style="margin:0">
+                      <div style="display:flex; justify-content:space-between; align-items:center; gap:8px">
+                        <h4 style="margin:0">${escaparHtml(c.nombre)}</h4>
+                        <span class="badge-estado ${disponible ? "badge-ok" : "badge-alerta"}">${disponible ? "DISPONIBLE" : "NO DISPONIBLE"}</span>
+                      </div>
+                      <div style="margin-top:8px">${etiquetaEstadoCuadrilla(c.estado_actividad)}</div>
+                      <div style="margin-top:12px">
+                        <strong>Camión</strong>
+                        ${
+                          camion
+                            ? `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin:6px 0"><span>${escaparHtml(camion.matricula)} <small>(${escaparHtml(camion.estado)})</small></span><button type="button" class="btn-mini boton-peligro" data-accion="quitar-camion" data-matricula="${escaparHtml(camion.matricula)}" style="padding:4px 10px">Quitar</button></div>`
+                            : `<div class="acciones-fila" style="align-items:center; margin-top:6px">
+                                 <select class="campo-entrada" data-select="camion" aria-label="Asignar camión a ${escaparHtml(c.nombre)}" style="flex:1; min-width:150px">${opcionesSelect(camionesLibres, function (x) { return x.matricula; }, function (x) { return x.matricula; }, "No hay camiones disponibles")}</select>
+                                 <button type="button" class="btn-mini" data-accion="asignar-camion">Asignar</button>
+                               </div>`
+                        }
+                      </div>
+                      ${integrantes("chofer", "Choferes", "Sin choferes")}
+                      ${integrantes("recolector", "Recolectores", "Sin recolectores")}
+                      <div style="margin-top:14px">
+                        <button type="button" class="btn-mini boton-secundario" data-accion="disponibilidad">${disponible ? "Marcar no disponible" : "Marcar disponible"}</button>
+                      </div>
+                    </article>`;
+                })
+                .join("");
+            })
+            .catch(function () {
+              const lista = document.getElementById("cuadrillas-lista");
+              if (lista) lista.innerHTML = "<p style='color:red;'>Error al cargar las cuadrillas.</p>";
+            });
+        }
+
+        // Un solo listener para todos los botones de las tarjetas.
+        document
+          .getElementById("cuadrillas-lista")
+          .addEventListener("click", function (ev) {
+            const boton = ev.target.closest("button[data-accion]");
+            if (!boton) return;
+            const tarjeta = boton.closest("article[data-cuadrilla]");
+            const cuadrillaId = tarjeta.dataset.cuadrilla;
+            const accion = boton.dataset.accion;
+            const valorSelect = function (nombre) {
+              const s = tarjeta.querySelector(`select[data-select="${nombre}"]`);
+              return s ? s.value : "";
+            };
+            if (accion === "agregar") {
+              const usuarioId = valorSelect(boton.dataset.rol);
+              if (!usuarioId) {
+                avisar(null, "Elegí a quién querés agregar.");
+                return;
+              }
+              accionar(API_RELACIONES, { method: "POST", body: JSON.stringify({ accion: "miembro", usuario_id: usuarioId, cuadrilla_id: cuadrillaId }) }, "No se pudo agregar al integrante.");
+            } else if (accion === "quitar") {
+              accionar(API_RELACIONES, { method: "POST", body: JSON.stringify({ accion: "quitar_miembro", usuario_id: boton.dataset.usuario }) }, "No se pudo quitar al integrante.");
+            } else if (accion === "asignar-camion") {
+              const matricula = valorSelect("camion");
+              if (!matricula) {
+                avisar(null, "Elegí un camión disponible.");
+                return;
+              }
+              accionar(API_CAMIONES + "?matricula=" + encodeURIComponent(matricula) + "&accion=asignar_cuadrilla", { method: "PUT", body: JSON.stringify({ cuadrilla_id: cuadrillaId }) }, "No se pudo asignar el camión.");
+            } else if (accion === "quitar-camion") {
+              accionar(API_CAMIONES + "?matricula=" + encodeURIComponent(boton.dataset.matricula) + "&accion=desasignar_cuadrilla", { method: "PUT", body: JSON.stringify({}) }, "No se pudo quitar el camión.");
+            } else if (accion === "disponibilidad") {
+              accionar(API_CUADRILLAS + "?id=" + encodeURIComponent(cuadrillaId), { method: "PUT", body: JSON.stringify({ nombre: tarjeta.dataset.nombre, disponibilidad: tarjeta.dataset.disponible === "1" ? "0" : "1" }) }, "No se pudo cambiar la disponibilidad.");
+            }
+          });
+
+        cargarCuadrillas();
+      }
+      vincularMenu("menu-cuadrillas-equipos", renderCuadrillasEquipos);
+
+      // ==================================================
+      //  ASIGNAR RUTAS (vista guiada): ruta + cuadrilla (con su camión) + fecha
+      // ==================================================
+      function renderAsignarRutas() {
+        espacio.innerHTML = `
+                <div class="seccion-bloque">
+                    <h3>Asignar ruta a una cuadrilla</h3>
+                    <p class="descripcion">Elegí la ruta, la cuadrilla (se usa su camión asignado) y la fecha. Las incidencias abiertas de los contenedores de la ruta se asignan solas a esa cuadrilla (en curso si la fecha es hoy) y también las que se reporten después. Solo aparecen cuadrillas disponibles con camión operativo (Disponible o En Ruta).</p>
+                    <form id="form-asignar-ruta" class="form-fila">
+                        <div><label for="asig-ruta">Ruta</label><select id="asig-ruta" class="campo-entrada" required></select></div>
+                        <div><label for="asig-cuadrilla">Cuadrilla</label><select id="asig-cuadrilla" class="campo-entrada" required></select></div>
+                        <div><label for="asig-fecha">Fecha</label><input id="asig-fecha" class="campo-entrada" type="date" required></div>
+                        <button type="submit" class="btn-mini" style="align-self:flex-end">Asignar ruta</button>
+                    </form>
+                    <p id="asig-estado" role="status" style="min-height:1.4em"></p>
+                    <h4>Rutas asignadas</h4>
+                    <div id="asig-lista">Cargando...</div>
+                </div>
+            `;
+        const estado = document.getElementById("asig-estado");
+        const avisar = function (data, errorGenerico) {
+          estado.style.color = data && data.status === "success" ? "#166534" : "#a63232";
+          estado.textContent = data && data.message ? data.message : errorGenerico;
+        };
+        const hoy = new Date();
+        document.getElementById("asig-fecha").min =
+          hoy.getFullYear() + "-" + String(hoy.getMonth() + 1).padStart(2, "0") + "-" + String(hoy.getDate()).padStart(2, "0");
+
+        let rutas = [];
+        let cuadrillas = [];
+        let camiones = [];
+
+        function cargar() {
+          Promise.all([
+            apiFetch("../Backend/api/recoleccion/rutas.php"),
+            apiFetch(API_CUADRILLAS),
+            apiFetch(API_CAMIONES),
+            apiFetch("../Backend/api/recoleccion/asignaciones.php"),
+          ])
+            .then(function (res) {
+              if (res.some(function (r) { return r.status !== "success"; })) {
+                document.getElementById("asig-lista").innerHTML = "<p style='color:red;'>Error al cargar los datos.</p>";
+                return;
+              }
+              rutas = res[0].data || [];
+              cuadrillas = res[1].data || [];
+              camiones = res[2].data || [];
+              const asignaciones = res[3].data || [];
+
+              const camionDe = function (cid) {
+                return camiones.find(function (x) {
+                  return String(x.cuadrilla_id) === String(cid) && (x.estado === "Disponible" || x.estado === "En Ruta");
+                });
+              };
+              const aptas = cuadrillas.filter(function (c) {
+                return Number(c.disponibilidad) === 1 && camionDe(c.id);
+              });
+              document.getElementById("asig-ruta").innerHTML = opcionesSelect(rutas, function (r) { return r.id; }, function (r) { return r.nombre + (r.zona ? " — " + r.zona : ""); }, "No hay rutas: creá una en Rutas y calendario");
+              document.getElementById("asig-cuadrilla").innerHTML = opcionesSelect(aptas, function (c) { return c.id; }, function (c) { return c.nombre + " — " + camionDe(c.id).matricula; }, "No hay cuadrillas con camión disponible: configurá una en Cuadrillas");
+
+              const lista = document.getElementById("asig-lista");
+              if (!asignaciones.length) {
+                lista.innerHTML = "<p style='color:#64748b;'>Todavía no hay rutas asignadas.</p>";
+                return;
+              }
+              const nombre = function (arr, id, campo) {
+                const x = arr.find(function (y) { return String(y.id) === String(id); });
+                return x ? x[campo] : "#" + id;
+              };
+              lista.innerHTML = `<div style="overflow:auto"><table class="tabla-api"><thead><tr><th>Fecha</th><th>Ruta</th><th>Cuadrilla</th><th>Camión</th></tr></thead><tbody>${asignaciones
+                .map(function (a) {
+                  return `<tr><td>${escaparHtml(String(a.fecha || "").slice(0, 10))}</td><td>${escaparHtml(nombre(rutas, a.ruta_id, "nombre"))}</td><td>${escaparHtml(nombre(cuadrillas, a.cuadrilla_id, "nombre"))}</td><td>${escaparHtml(a.matricula)}</td></tr>`;
+                })
+                .join("")}</tbody></table></div>`;
+            })
+            .catch(function () {
+              const lista = document.getElementById("asig-lista");
+              if (lista) lista.innerHTML = "<p style='color:red;'>Error al cargar los datos.</p>";
+            });
+        }
+
+        document
+          .getElementById("form-asignar-ruta")
+          .addEventListener("submit", function (ev) {
+            ev.preventDefault();
+            const rutaId = document.getElementById("asig-ruta").value;
+            const cuadrillaId = document.getElementById("asig-cuadrilla").value;
+            const fecha = document.getElementById("asig-fecha").value;
+            if (!rutaId || !cuadrillaId || !fecha) {
+              avisar(null, "Completá la ruta, la cuadrilla y la fecha.");
+              return;
+            }
+            const camion = camiones.find(function (x) {
+              return String(x.cuadrilla_id) === String(cuadrillaId) && (x.estado === "Disponible" || x.estado === "En Ruta");
+            });
+            if (!camion) {
+              avisar(null, "La cuadrilla elegida no tiene un camión disponible.");
+              return;
+            }
+            apiFetch("../Backend/api/recoleccion/asignaciones.php", {
+              method: "POST",
+              body: JSON.stringify({ ruta_id: rutaId, cuadrilla_id: cuadrillaId, matricula: camion.matricula, fecha: fecha }),
+            })
+              .then(function (data) {
+                avisar(data, "No se pudo asignar la ruta.");
+                if (data.status === "success") cargar();
+              })
+              .catch(function () {
+                avisar(null, "No se pudo asignar la ruta.");
+              });
+          });
+
+        cargar();
+      }
+      vincularMenu("menu-asignar-rutas", renderAsignarRutas);
+
+
       // Gestión de Incidencias (listar + asignar logística + resolver)
       function renderGestionIncidenciasAdmin() {
         espacio.innerHTML = `
                 <div class="seccion-bloque">
                     <h3>Gestión de Incidencias</h3>
-                    <p class="descripcion">Asigná cuadrilla y camión a las incidencias abiertas, o marcalas como resueltas.</p>
+                    <p class="descripcion">Asigná cuadrilla y camión a las incidencias abiertas (una cuadrilla puede tomar varias a la vez), o marcalas como resueltas.</p>
                     <div id="admin-inc-contenido">Cargando...</div>
                 </div>
             `;
@@ -2082,7 +2576,7 @@
             // camión esté libre en este momento.
             const camionesConCuadrillaDisponible = (res[1].data || []).filter(
               function (c) {
-                return c.estado === "Disponible" && c.cuadrilla_id;
+                return (c.estado === "Disponible" || c.estado === "En Ruta") && c.cuadrilla_id;
               },
             );
 
@@ -2116,7 +2610,7 @@
               if (estado === "abierta") {
                 const opcionesCuadrillaCamion = camionesConCuadrillaDisponible
                   .map(function (c) {
-                    return `<option value="${escaparHtml(c.matricula)}" data-cuadrilla-id="${escaparHtml(c.cuadrilla_id)}">${escaparHtml(c.cuadrilla_nombre)} — ${escaparHtml(c.matricula)}</option>`;
+                    return `<option value="${escaparHtml(c.matricula)}" data-cuadrilla-id="${escaparHtml(c.cuadrilla_id)}">${escaparHtml(c.cuadrilla_nombre)} — ${escaparHtml(c.matricula)}${c.estado === "En Ruta" ? " (en ruta: suma otra incidencia)" : ""}</option>`;
                   })
                   .join("");
                 accionHtml = `
@@ -2219,8 +2713,177 @@
           });
       }
 
+      // ---- Incidencias reportadas como falsas por las cuadrillas (solo lectura) ----
+      function renderIncidenciasReportadas() {
+        espacio.innerHTML = `
+                <div class="seccion-bloque">
+                    <h3>Incidencias reportadas</h3>
+                    <p class="descripcion">Incidencias que una cuadrilla marcó como falsas. El vecino ya recibió la penalización correspondiente; si hubo un error podés regularla desde "Usuarios penalizados".</p>
+                    <div id="admin-reportadas-contenido">Cargando...</div>
+                </div>
+            `;
+        apiFetch("../Backend/api/recoleccion/incidencias.php?reportadas=1")
+          .then(function (res) {
+            const div = document.getElementById("admin-reportadas-contenido");
+            const lista = res.data || [];
+            if (res.status !== "success") {
+              div.innerHTML = `<p style='color:red;'>${escaparHtml(res.message || "Error al cargar las incidencias reportadas.")}</p>`;
+              return;
+            }
+            if (lista.length === 0) {
+              div.innerHTML =
+                "<p style='color:#64748b;'>No hay incidencias reportadas como falsas.</p>";
+              return;
+            }
+            let html = `
+                    <table class="tabla-api">
+                        <thead>
+                            <tr>
+                                <th># ID</th>
+                                <th>Ubicación</th>
+                                <th>Contenedor / Tipo</th>
+                                <th>Vecino</th>
+                                <th>Reportes falsos</th>
+                                <th>Reportada por</th>
+                                <th>Motivo</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+            lista.forEach(function (inc) {
+              html += `
+                        <tr>
+                            <td>#${escaparHtml(inc.id)}</td>
+                            <td>${escaparHtml(inc.ubicacion)}</td>
+                            <td>${escaparHtml(inc.estado_contenedor)} — ${escaparHtml(inc.tipo_basura)}</td>
+                            <td>${escaparHtml(inc.vecino_nombre || "-")}<br><small>${escaparHtml(inc.vecino_email || "")}</small><br><small>CI ${escaparHtml(inc.vecino_cedula || "-")}</small></td>
+                            <td>${escaparHtml(inc.vecino_penalizaciones === null ? "-" : inc.vecino_penalizaciones)}</td>
+                            <td>${escaparHtml(inc.reportada_por_nombre || "-")}<br><small>${escaparHtml(inc.cuadrilla_nombre || (inc.cuadrilla_id ? "Cuadrilla #" + inc.cuadrilla_id : "-"))} / ${escaparHtml(inc.matricula_camion || "-")}</small></td>
+                            <td style="white-space:pre-wrap; overflow-wrap:anywhere; min-width:220px;">${escaparHtml(inc.motivo_reporte || "-")}</td>
+                            <td>${escaparHtml(inc.fecha_reporte || "-")}</td>
+                        </tr>
+                    `;
+            });
+            html += `</tbody></table>`;
+            div.innerHTML = html;
+          })
+          .catch(function () {
+            document.getElementById("admin-reportadas-contenido").innerHTML =
+              "<p style='color:red;'>Error al cargar las incidencias reportadas.</p>";
+          });
+      }
+      vincularMenu("menu-incidencias-reportadas", renderIncidenciasReportadas);
+
+      // ---- Usuarios penalizados (listar + despenalizar / regular horas) ----
+      function renderUsuariosPenalizados() {
+        espacio.innerHTML = `
+                <div class="seccion-bloque">
+                    <h3>Usuarios penalizados</h3>
+                    <p class="descripcion">Vecinos que no pueden reportar incidencias por reportes falsos. Nivel 1 = 24 h, nivel 2 = 72 h, nivel 3 o más = permanente. Podés fijar nuevas horas o levantar la penalización (0 horas) si la cuadrilla se equivocó.</p>
+                    <div id="admin-penalizados-contenido">Cargando...</div>
+                </div>
+            `;
+        cargarUsuariosPenalizados();
+      }
+      vincularMenu("menu-usuarios-penalizados", renderUsuariosPenalizados);
+
+      function cargarUsuariosPenalizados() {
+        apiFetch("../Backend/api/usuarios/penalizados.php")
+          .then(function (res) {
+            const div = document.getElementById("admin-penalizados-contenido");
+            if (!div) return;
+            if (res.status !== "success") {
+              div.innerHTML = `<p style='color:red;'>${escaparHtml(res.message || "Error al cargar los usuarios penalizados.")}</p>`;
+              return;
+            }
+            const lista = res.data || [];
+            if (lista.length === 0) {
+              div.innerHTML =
+                "<p style='color:#64748b;'>No hay usuarios penalizados en este momento.</p>";
+              return;
+            }
+            let html = `
+                    <table class="tabla-api">
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Horas penalizado</th>
+                                <th>Nivel de penalización</th>
+                                <th>Estado</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+            lista.forEach(function (u) {
+              const permanente = Number(u.baneo_permanente) === 1;
+              const restante = Math.max(1, Math.ceil(Number(u.minutos_restantes) / 60));
+              html += `
+                        <tr>
+                            <td>${escaparHtml(u.nombre)}<br><small>${escaparHtml(u.email)}</small><br><small>CI ${escaparHtml(u.cedula)} · ${escaparHtml(u.rol)}</small></td>
+                            <td>${escaparHtml(u.horas_penalizado === null ? "-" : u.horas_penalizado)} h</td>
+                            <td>${escaparHtml(u.penalizaciones)}</td>
+                            <td><span class="badge-estado badge-alerta">${permanente ? "PERMANENTE" : "RESTAN " + restante + " H"}</span></td>
+                            <td><button class="btn-mini btn-despenalizar" data-id="${escaparHtml(u.id)}" data-nombre="${escaparHtml(u.nombre)}" data-nivel="${escaparHtml(u.penalizaciones)}" data-permanente="${permanente ? "1" : "0"}">Despenalizar</button></td>
+                        </tr>
+                    `;
+            });
+            html += `</tbody></table>`;
+            div.innerHTML = html;
+
+            div.querySelectorAll(".btn-despenalizar").forEach(function (btn) {
+              btn.addEventListener("click", async function () {
+                const horas = await solicitarDatos({
+                  titulo: "Despenalizar usuario",
+                  descripcion:
+                    "Ingresá las nuevas horas de penalización, contadas desde ahora. Con 0 horas el usuario queda despenalizado por completo.",
+                  detalle: [
+                    ["Usuario", btn.dataset.nombre],
+                    ["Nivel de penalización", btn.dataset.nivel],
+                    [
+                      "Estado actual",
+                      btn.dataset.permanente === "1" ? "Permanente" : "Temporal",
+                    ],
+                  ],
+                  campo: {
+                    tipo: "numero",
+                    etiqueta: "Nuevas horas de penalización",
+                    ayuda: "Número entero de 0 a 8760 (0 = quitar la penalización).",
+                    maximo: 8760,
+                    validar: validarHorasPenalizacion,
+                  },
+                  confirmar: "Confirmar",
+                });
+                if (horas === null) return;
+                apiFetch(
+                  "../Backend/api/usuarios/penalizados.php?id=" +
+                    encodeURIComponent(btn.dataset.id),
+                  {
+                    method: "PUT",
+                    body: JSON.stringify({ horas: Number(horas) }),
+                  },
+                )
+                  .then(function (data) {
+                    alert(data.message);
+                    cargarUsuariosPenalizados();
+                  })
+                  .catch(function () {
+                    alert("Error al despenalizar al usuario.");
+                  });
+              });
+            });
+          })
+          .catch(function () {
+            const div = document.getElementById("admin-penalizados-contenido");
+            if (div)
+              div.innerHTML =
+                "<p style='color:red;'>Error al cargar los usuarios penalizados.</p>";
+          });
+      }
+
       //  CARGA INICIAL: Dashboard por defecto
-      const { instalarOperaciones } = await import("./operaciones.js?v=4");
+      const { instalarOperaciones } = await import("./operaciones.js?v=7");
       instalarOperaciones({
         apiFetch,
         espacio,
