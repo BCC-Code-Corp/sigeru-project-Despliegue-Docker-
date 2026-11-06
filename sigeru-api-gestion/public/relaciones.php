@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . '/../../config/conexion.php';
-require_once __DIR__ . '/../../core/Sesion.php';
-require_once __DIR__ . '/../../controllers/OperacionController.php';
+require_once __DIR__ . '/../app/config/conexion.php';
+require_once __DIR__ . '/../app/core/Sesion.php';
+require_once __DIR__ . '/../app/controllers/OperacionController.php';
 try {
     Sesion::proteger($pdo, 'relaciones');
     $controller = new OperacionController($pdo);

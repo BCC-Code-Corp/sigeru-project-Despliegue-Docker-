@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . '/../../config/conexion.php';
-require_once __DIR__ . '/../../core/Sesion.php';
-require_once __DIR__ . '/../../models/Usuario.php';
+require_once __DIR__ . '/../app/config/conexion.php';
+require_once __DIR__ . '/../app/core/Sesion.php';
+require_once __DIR__ . '/../app/models/Usuario.php';
 try {
     if ($_SERVER['REQUEST_METHOD'] !== 'GET') Sesion::rechazar('Método no soportado.', 405);
     $u = Sesion::usuario($pdo);
